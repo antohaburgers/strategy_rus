@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Русь — прототип карты</title><style>
 *{box-sizing:border-box}body{margin:0;background:#1c241b;color:#f6edda;font:14px system-ui,sans-serif;overflow:hidden}canvas{display:block;width:100vw;height:100vh;touch-action:none}header{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:8px;align-items:center;pointer-events:none;flex-wrap:wrap}.panel{background:#302b22ed;border:1px solid #857251;border-radius:10px;padding:10px 14px;box-shadow:0 3px 12px #0005;pointer-events:auto}h1{font-size:17px;margin:0}.muted{color:#c5b99d;font-size:12px}nav{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);display:flex;gap:6px;background:#302b22ee;padding:8px;border:1px solid #857251;border-radius:12px;max-width:96vw;overflow:auto}button{border:1px solid #927a54;background:#51422f;color:#fff0d6;padding:10px 12px;border-radius:8px;cursor:pointer;white-space:nowrap}button.active{background:#8b6a36;border-color:#e4bd78}button:hover{filter:brightness(1.15)}#status{position:absolute;right:12px;bottom:85px;max-width:290px}#help{position:absolute;top:83px;left:12px;max-width:300px;line-height:1.5}@media(max-width:650px){#help{font-size:11px;top:95px;max-width:220px}#status{bottom:88px;font-size:11px}nav button{padding:9px 10px}}
-</style></head><body><canvas id="game"></canvas><header><div class="panel"><h1>РУСЬ <span class="muted">· карта 0.2</span></h1></div><div class="panel">🪵 <span id="wood">120</span>　🏠 <span id="houses">2</span>　🛤️ <span id="roads">0</span></div><div class="panel"><button id="zoomout" aria-label="Отдалить">−</button> <button id="zoomin" aria-label="Приблизить">＋</button> <button id="save">Сохранить</button> <button id="reset">Новая карта</button></div></header><div id="help" class="panel">Телефон: веди одним пальцем для перемещения, двумя — для масштаба. Короткое касание — построить или выбрать.</div><div id="status" class="panel">Выбери инструмент. Дороги соединяются автоматически.</div><nav id="tools"><button data-tool="inspect" class="active">👁 Осмотр</button><button data-tool="house">🏠 Изба · 20🪵</button><button data-tool="road">🛤 Дорога · 2🪵</button><button data-tool="tree">🌲 Дерево</button><button data-tool="erase">🪓 Убрать</button></nav>
+</style></head><body><canvas id="game"></canvas><header><div class="panel"><h1>РУСЬ <span class="muted">· поселение 0.3</span></h1></div><div class="panel">🪵 <span id="wood">120</span>　🏠 <span id="houses">2</span>　🛤️ <span id="roads">0</span></div><div class="panel"><button id="zoomout" aria-label="Отдалить">−</button> <button id="zoomin" aria-label="Приблизить">＋</button> <button id="save">Сохранить</button> <button id="reset">Новая карта</button></div></header><div id="help" class="panel">Телефон: веди одним пальцем для перемещения, двумя — для масштаба. Короткое касание — построить или выбрать.</div><div id="status" class="panel">Выбери инструмент. Дороги соединяются автоматически.</div><nav id="tools"><button data-tool="inspect" class="active">👁 Осмотр</button><button data-tool="house">🏠 Изба · 20🪵</button><button data-tool="sawmill">🪚 Лесопилка · 35🪵</button><button data-tool="garden">🥕 Огород · 12🪵</button><button data-tool="field">🌾 Поле · 15🪵</button><button data-tool="granary">🏚 Амбар · 30🪵</button><button data-tool="road">🛤 Дорога · 2🪵</button><button data-tool="tree">🌲 Дерево</button><button data-tool="erase">🪓 Убрать</button></nav>
 <script>
 (()=>{
 'use strict';
@@ -70,12 +70,69 @@ function house(x,y){
   L(-27,6,-20,10,'#85603d',3);
   L(-24,9,-18,12,'#c09963',2);
 }
+
+// Все новые постройки используют один и тот же ромб основания.
+// Нижняя грань основания лежит в клетке, детали растут вверх.
+function building(x,y,type){
+ const P=(pts,c,stroke)=>poly(pts.map(([a,b])=>[x+a,y+b]),c,stroke);
+ const L=(a,b,c,d,col,w)=>line([x+a,y+b],[x+c,y+d],col,w);
+ const base=(tint='#a68d60')=>{ellipse(x,y+7,31,10,'#253c2850');P([[0,-14],[29,0],[0,14],[-29,0]],tint,'#725e42')};
+ if(type==='garden'||type==='field'){
+   base(type==='garden'?'#76563c':'#9b8051');
+   for(let row=0;row<4;row++){
+     const dy=-9+row*6;
+     L(-20,dy-1,0,dy+9,'#4e3928',4);
+     L(0,dy+9,20,dy-1,'#4e3928',4);
+     for(let i=0;i<5;i++){
+       const a=-16+i*8,yy=dy+Math.abs(a)*.38;
+       if(type==='garden'){
+         ellipse(x+a,y+yy-3,3.6,2.4,row%2?'#60954a':'#75a54b');
+         L(a,yy-2,a+2,yy-5,'#97b86c',1.5);
+       }else{
+         L(a,yy,a-2,yy-9,'#bda34e',2);
+         L(a-2,yy-9,a-5,yy-12,'#e4ca70',1.4);
+         L(a-2,yy-9,a+1,yy-13,'#e4ca70',1.4);
+       }
+     }
+   }
+   for(let i=-1;i<=1;i++){L(-27+i*3,-3,-27+i*3,-11,'#b89a6a',2);L(27-i*3,-3,27-i*3,-11,'#b89a6a',2)}
+   return;
+ }
+ if(type==='sawmill'){
+   base('#a88b62');
+   P([[-24,-3],[0,9],[0,-19],[-24,-31]],'#b88b56','#64442b');
+   P([[0,-19],[0,9],[24,-3],[24,-31]],'#90603b','#604029');
+   for(let i=0;i<4;i++){L(-22,-28+i*6,-2,-18+i*6,'#76502f',1.7);L(2,-18+i*6,22,-28+i*6,'#6a452b',1.7)}
+   P([[-30,-34],[-3,-55],[3,-55],[30,-34],[25,-30],[0,-49]],'#8b6140','#5e422e');
+   P([[-30,-34],[-3,-55],[0,-49],[-25,-30]],'#bd8c57');
+   P([[3,-55],[30,-34],[25,-30],[0,-49]],'#6e4b34');
+   P([[7,-17],[18,-23],[18,-6],[7,0]],'#4b392b','#b8935f');
+   // Брёвна и козлы перед пилорамой.
+   for(let i=0;i<3;i++){L(-21+i*4,7,-8+i*4,13,'#9a683e',4);ellipse(x-21+i*4,y+7,2.4,2.4,'#d2a36b')}
+   L(16,5,23,9,'#d2aa76',3);L(23,9,28,4,'#d2aa76',3);
+   return;
+ }
+ if(type==='granary'){
+   base('#8c826a');
+   P([[-24,-4],[0,8],[0,-26],[-24,-38]],'#c39a62','#704d30');
+   P([[0,-26],[0,8],[24,-4],[24,-38]],'#9c7247','#67462d');
+   for(let i=0;i<5;i++){L(-22,-35+i*7,-2,-25+i*7,'#8b613d',1.6);L(2,-25+i*7,22,-35+i*7,'#7d5436',1.6)}
+   P([[-30,-41],[-4,-64],[3,-64],[30,-41],[24,-36],[0,-57]],'#a16b42','#65452e');
+   P([[-30,-41],[-4,-64],[0,-57],[-25,-36]],'#c18e56');
+   P([[3,-64],[30,-41],[24,-36],[0,-57]],'#765039');
+   L(-30,-41,-4,-64,'#e0b178',2);
+   P([[9,-20],[20,-26],[20,-6],[9,0]],'#6b4b32','#d0a26c');
+   L(13,-20,13,-3,'#d2a46f',1.5);
+   for(let i=0;i<3;i++)ellipse(x-17+i*7,y+3+i*2,4,2.6,'#c7a267');
+   return;
+ }
+}
 function roadDraw(x,y,cx,cy){const neighbors=[[0,-1],[1,0],[0,1],[-1,0]].filter(([dx,dy])=>roads.has(id(x+dx,y+dy)));ellipse(cx,cy,25,12,'#b89a6c');for(const [dx,dy] of neighbors){const p=project(dx,dy);line([cx,cy],[cx+p.x*.54,cy+p.y*.54],'#b89a6c',19);line([cx,cy],[cx+p.x*.54,cy+p.y*.54],'#c6aa7b',11)}for(let i=0;i<7;i++){const rx=(rand(x,y,i)-.5)*36,ry=(rand(y,x,i)-.5)*15;ellipse(cx+rx,cy+ry,1.7,0.9,'#806c4b')}}
 function ground(x,y,p){const a=rand(Math.floor(x/4),Math.floor(y/4),12),b=rand(x,y,3);const palette=a>.64?['#789b60','#73965c','#7d9e64']:a>.34?['#729359','#6c8d55','#77965c']:['#66874f','#6d8e55','#73925a'];diamond(p.x,p.y,palette[Math.floor(b*3)]);if(terrain[y*N+x]==='dirt'){ellipse(p.x+5,p.y,19,7,'#a08c61aa')}for(let i=0;i<4;i++){const gx=p.x+(rand(x,y,20+i)-.5)*65,gy=p.y+(rand(y,x,30+i)-.5)*23;const flower=rand(x,y,40+i)>.9;line([gx,gy+2],[gx-1,gy-2],flower?'#e4d3a1':'#8daf69',1);if(flower)ellipse(gx-1,gy-3,1.8,1.8,'#f0d7a2')}}
-function draw(){const dpr=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr)}ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#182c22';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.save();ctx.translate(canvas.width/2+offsetX*zoom,canvas.height*.31+offsetY*zoom);ctx.scale(zoom,zoom);for(let sum=0;sum<=2*(N-1);sum++){for(let y=Math.max(0,sum-(N-1));y<=Math.min(N-1,sum);y++){const x=sum-y,p=project(x+.5,y+.5),r=rand(x,y,3);ground(x,y,p);if(roads.has(id(x,y)))roadDraw(x,y,p.x,p.y);const obj=objects.find(o=>o.x===x&&o.y===y);if(obj){if(obj.type==='tree')tree(p.x,p.y,obj.variant);else house(p.x,p.y)}}}if(hover&&inside(hover.x,hover.y)){const p=project(hover.x+.5,hover.y+.5),bad=occupied(hover.x,hover.y)||roads.has(id(hover.x,hover.y));diamond(p.x,p.y,tool==='inspect'?'#ffffff24':bad?'#e0444470':'#c6df7470','#fff9');}ctx.restore();requestAnimationFrame(draw)}
+function draw(){const dpr=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr)}ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#182c22';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.save();ctx.translate(canvas.width/2+offsetX*zoom,canvas.height*.31+offsetY*zoom);ctx.scale(zoom,zoom);for(let sum=0;sum<=2*(N-1);sum++){for(let y=Math.max(0,sum-(N-1));y<=Math.min(N-1,sum);y++){const x=sum-y,p=project(x+.5,y+.5),r=rand(x,y,3);ground(x,y,p);if(roads.has(id(x,y)))roadDraw(x,y,p.x,p.y);const obj=objects.find(o=>o.x===x&&o.y===y);if(obj){if(obj.type==='tree')tree(p.x,p.y,obj.variant);else if(obj.type==='house')house(p.x,p.y);else building(p.x,p.y,obj.type)}}}if(hover&&inside(hover.x,hover.y)){const p=project(hover.x+.5,hover.y+.5),bad=occupied(hover.x,hover.y)||roads.has(id(hover.x,hover.y));diamond(p.x,p.y,tool==='inspect'?'#ffffff24':bad?'#e0444470':'#c6df7470','#fff9');}ctx.restore();requestAnimationFrame(draw)}
 function updateUI(){$('#wood').textContent=wood;$('#houses').textContent=objects.filter(o=>o.type==='house').length;$('#roads').textContent=roads.size}
 function message(t){$('#status').textContent=t}
-function act(x,y){if(!inside(x,y))return;const i=objects.findIndex(o=>o.x===x&&o.y===y),r=roads.has(id(x,y));if(tool==='inspect'){message(i>=0?(objects[i].type==='house'?'Изба — уютный дом из брёвен.':'Лес — можно расчистить участок.'):r?'Грунтовая дорога.':`Клетка ${x}, ${y}. Свободный участок.`);return}if(tool==='erase'){if(i>=0){objects.splice(i,1);wood+=2}else if(r){roads.delete(id(x,y));wood+=1}else return;message('Участок расчищен.');}else if(i>=0||r){message('Здесь уже что-то есть.');return}else if(tool==='house'){if(wood<20){message('Не хватает древесины!');return}wood-=20;objects.push({x,y,type:'house'});message('Изба построена!');}else if(tool==='road'){if(wood<2){message('Не хватает древесины!');return}wood-=2;roads.add(id(x,y));message('Дорога проложена.');}else if(tool==='tree'){objects.push({x,y,type:'tree',variant:rand(x,y,7)});message('Посажена ель.');}updateUI();changed=true}
+function act(x,y){if(!inside(x,y))return;const i=objects.findIndex(o=>o.x===x&&o.y===y),r=roads.has(id(x,y));if(tool==='inspect'){message(i>=0?(({house:'Изба — жильё.',tree:'Лес — можно расчистить участок.',sawmill:'Лесопилка — будущая добыча древесины.',garden:'Огород — будущая добыча еды.',field:'Пшеничное поле — будущая добыча еды.',granary:'Амбар — будущее хранение припасов.'}[objects[i].type]||'Постройка.')):r?'Грунтовая дорога.':`Клетка ${x}, ${y}. Свободный участок.`);return}if(tool==='erase'){if(i>=0){objects.splice(i,1);wood+=2}else if(r){roads.delete(id(x,y));wood+=1}else return;message('Участок расчищен.');}else if(i>=0||r){message('Здесь уже что-то есть.');return}else if(tool==='house'){if(wood<20){message('Не хватает древесины!');return}wood-=20;objects.push({x,y,type:'house'});message('Изба построена!');}else if(['sawmill','garden','field','granary'].includes(tool)){const costs={sawmill:35,garden:12,field:15,granary:30},names={sawmill:'Лесопилка',garden:'Огород',field:'Поле',granary:'Амбар'};if(wood<costs[tool]){message('Не хватает древесины!');return}wood-=costs[tool];objects.push({x,y,type:tool});message(names[tool]+' построен(о). Производство добавим следующим этапом.')}else if(tool==='road'){if(wood<2){message('Не хватает древесины!');return}wood-=2;roads.add(id(x,y));message('Дорога проложена.');}else if(tool==='tree'){objects.push({x,y,type:'tree',variant:rand(x,y,7)});message('Посажена ель.');}updateUI();changed=true}
 function persist(){localStorage.setItem('rus-map-v1',JSON.stringify({seed,wood,terrain,objects,roads:[...roads],offsetX,offsetY,zoom}));message('Поселение сохранено.')}
 function load(){try{const s=JSON.parse(localStorage.getItem('rus-map-v1'));if(!s)return false;({seed,wood,terrain,objects,offsetX,offsetY,zoom}=s);roads=new Set(s.roads);updateUI();return true}catch{return false}}
 document.querySelectorAll('[data-tool]').forEach(b=>b.addEventListener('click',()=>{tool=b.dataset.tool;document.querySelectorAll('[data-tool]').forEach(q=>q.classList.toggle('active',q===b));message('Инструмент: '+b.textContent)}));
