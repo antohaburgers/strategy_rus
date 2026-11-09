@@ -23,7 +23,39 @@ function diamond(x,y,c,stroke){poly([[x,y-TH/2],[x+TW/2,y],[x,y+TH/2],[x-TW/2,y]
 function line(a,b,color,w){ctx.strokeStyle=color;ctx.lineWidth=w;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(...a);ctx.lineTo(...b);ctx.stroke()}
 function ellipse(x,y,rx,ry,color){ctx.beginPath();ctx.ellipse(x,y,rx,ry,0,0,Math.PI*2);ctx.fillStyle=color;ctx.fill()}
 function tree(x,y,v){const birch=v<.32,h=44+v*23;ellipse(x+5,y+2,20,8,'#193a2840');if(birch){line([x,y],[x-2,y-h*.77],'#e9dfc7',6);for(let i=0;i<4;i++)line([x-3,y-8-i*8],[x+1,y-10-i*8],'#51483a',2);for(let i=0;i<7;i++){const a=i*2.4,px=x+Math.sin(a)*14,py=y-h+12+Math.cos(a)*11;ellipse(px,py,12,10,i%2?'#6c9d58':'#82ad66')}ellipse(x-5,y-h-1,13,9,'#94b879')}else{line([x,y],[x,y-h*.8],'#765333',6);for(let i=3;i>=0;i--){const yy=y-h+9+i*12,w=10+i*5;poly([[x,yy-18],[x+w,yy+13],[x,yy+8],[x-w,yy+13]],i%2?'#315e42':'#3c714b','#254632')}line([x,y-h+8],[x,y-h+43],'#6f9a62',1)}}
-function house(x,y){ellipse(x+5,y+4,31,11,'#213d2950');poly([[x-23,y-8],[x,y+4],[x,y-25],[x-23,y-37]],'#b58c57','#65462c');poly([[x,y-25],[x,y+4],[x+23,y-8],[x+23,y-37]],'#93683e','#65462c');for(let i=0;i<4;i++){line([x-21,y-10-i*6],[x-2,y+1-i*6],'#765333',1.7);line([x+2,y+1-i*6],[x+21,y-10-i*6],'#6e4b30',1.7)}poly([[x-29,y-35],[x,y-53],[x+29,y-35],[x,y-17]],'#745038','#443326');poly([[x-29,y-35],[x,y-53],[x,y-48],[x-25,y-32]],'#9a704a');for(let i=0;i<5;i++)line([x-21+i*5,y-32-i*3],[x+2+i*5,y-19-i*3],'#ffffff16',1);poly([[x+8,y-15],[x+16,y-19],[x+16,y-4],[x+8,y]],'#4b3528','#35271d');poly([[x-17,y-24],[x-9,y-28],[x-9,y-18],[x-17,y-14]],'#e8c17d','#61452b');line([x-13,y-26],[x-13,y-16],'#6e4a2d',1.4);line([x-17,y-19],[x-9,y-23],'#6e4a2d',1.4);poly([[x+11,y-47],[x+17,y-44],[x+17,y-58],[x+11,y-61]],'#a48b70','#665543');ellipse(x+14,y-64,7,3,'#ffffff25')}
+function house(x,y){
+  // Широкая срубная изба: крыша из тёса, венцы брёвен, наличники и крыльцо.
+  ellipse(x+3,y+5,34,12,'#243c2855');
+  // Основание: два читаемых фасада и объёмный цоколь.
+  poly([[x-26,y-15],[x,y-1],[x+26,y-15],[x,y-29]],'#9a7047','#5c3c27');
+  poly([[x-26,y-15],[x,y-1],[x,y-31],[x-26,y-45]],'#b78b57','#65442a');
+  poly([[x,y-31],[x,y-1],[x+26,y-15],[x+26,y-45]],'#91643c','#65442a');
+  // Горизонтальные венцы сруба — бревенчатая фактура без текстур.
+  for(let i=0;i<5;i++){const dy=i*5.1;line([x-24,y-43+dy],[x-1,y-30+dy],'#704a2d',1.6);line([x+2,y-30+dy],[x+24,y-43+dy],'#654126',1.6)}
+  for(let i=0;i<5;i++){const yy=y-43+i*5.2;ellipse(x-24,yy,2.2,2,'#d0a06a');ellipse(x+24,yy,2.2,2,'#a4774c')}
+  // Высокая двускатная крыша с отдельными скатами и свесами.
+  poly([[x-34,y-47],[x-5,y-69],[x+3,y-63],[x-26,y-41]],'#c1905b','#604329');
+  poly([[x-5,y-69],[x+33,y-47],[x+26,y-40],[x+3,y-63]],'#805236','#553a2b');
+  poly([[x-34,y-47],[x-5,y-69],[x+33,y-47],[x+27,y-43],[x-5,y-64],[x-28,y-43]],'#a87347','#65432c');
+  line([x-5,y-69],[x+32,y-47],'#d0a06b',2.5);
+  for(let i=1;i<5;i++){let k=i/5;line([x-5+38*k,y-69+22*k],[x+2+31*k,y-62+22*k],'#5d3e2c66',1.2)}
+  // Резной фронтон.
+  poly([[x-26,y-43],[x-5,y-62],[x+3,y-58],[x+3,y-33]],'#bc8a54','#714b2c');
+  line([x-21,y-43],[x-5,y-57],'#e0b779',2);
+  // Светлое окно с резным наличником на переднем фасаде.
+  poly([[x-20,y-29],[x-10,y-35],[x-10,y-23],[x-20,y-17]],'#e6cf9d','#6d472b');
+  poly([[x-18,y-28],[x-12,y-31],[x-12,y-24],[x-18,y-21]],'#8cbbc0');
+  line([x-15,y-30],[x-15,y-22],'#f2d8a5',1.5);
+  line([x-20,y-25],[x-10,y-29],'#f2d8a5',1.5);
+  // Дверь и небольшое крыльцо на правом фасаде.
+  poly([[x+10,y-21],[x+19,y-26],[x+19,y-13],[x+10,y-8]],'#513b2b','#d0a06b');
+  ellipse(x+17,y-19,1.2,1.2,'#e7c77b');
+  poly([[x+8,y-7],[x+19,y-13],[x+28,y-8],[x+17,y-2]],'#a98155','#6c4b30');
+  line([x+12,y-3],[x+20,y-7],'#d4a777',2);
+  // Печь с трубой, дым добавим при анимации.
+  poly([[x+14,y-56],[x+21,y-52],[x+21,y-72],[x+14,y-76]],'#9c8a77','#67594b');
+  poly([[x+14,y-76],[x+18,y-79],[x+25,y-75],[x+21,y-72]],'#d2bca2','#67594b');
+}
 function roadDraw(x,y,cx,cy){const neighbors=[[0,-1],[1,0],[0,1],[-1,0]].filter(([dx,dy])=>roads.has(id(x+dx,y+dy)));ellipse(cx,cy,25,12,'#b89a6c');for(const [dx,dy] of neighbors){const p=project(dx,dy);line([cx,cy],[cx+p.x*.54,cy+p.y*.54],'#b89a6c',19);line([cx,cy],[cx+p.x*.54,cy+p.y*.54],'#c6aa7b',11)}for(let i=0;i<7;i++){const rx=(rand(x,y,i)-.5)*36,ry=(rand(y,x,i)-.5)*15;ellipse(cx+rx,cy+ry,1.7,0.9,'#806c4b')}}
 function ground(x,y,p){const a=rand(Math.floor(x/4),Math.floor(y/4),12),b=rand(x,y,3);const palette=a>.64?['#789b60','#73965c','#7d9e64']:a>.34?['#729359','#6c8d55','#77965c']:['#66874f','#6d8e55','#73925a'];diamond(p.x,p.y,palette[Math.floor(b*3)]);if(terrain[y*N+x]==='dirt'){ellipse(p.x+5,p.y,19,7,'#a08c61aa')}for(let i=0;i<4;i++){const gx=p.x+(rand(x,y,20+i)-.5)*65,gy=p.y+(rand(y,x,30+i)-.5)*23;const flower=rand(x,y,40+i)>.9;line([gx,gy+2],[gx-1,gy-2],flower?'#e4d3a1':'#8daf69',1);if(flower)ellipse(gx-1,gy-3,1.8,1.8,'#f0d7a2')}}
 function draw(){const dpr=Math.min(devicePixelRatio||1,2),w=innerWidth,h=innerHeight;if(canvas.width!==Math.round(w*dpr)||canvas.height!==Math.round(h*dpr)){canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr)}ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#182c22';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.save();ctx.translate(canvas.width/2+offsetX*zoom,canvas.height*.31+offsetY*zoom);ctx.scale(zoom,zoom);for(let sum=0;sum<=2*(N-1);sum++){for(let y=Math.max(0,sum-(N-1));y<=Math.min(N-1,sum);y++){const x=sum-y,p=project(x+.5,y+.5),r=rand(x,y,3);ground(x,y,p);if(roads.has(id(x,y)))roadDraw(x,y,p.x,p.y);const obj=objects.find(o=>o.x===x&&o.y===y);if(obj){if(obj.type==='tree')tree(p.x,p.y,obj.variant);else house(p.x,p.y)}}}if(hover&&inside(hover.x,hover.y)){const p=project(hover.x+.5,hover.y+.5),bad=occupied(hover.x,hover.y)||roads.has(id(hover.x,hover.y));diamond(p.x,p.y,tool==='inspect'?'#ffffff24':bad?'#e0444470':'#c6df7470','#fff9');}ctx.restore();requestAnimationFrame(draw)}
