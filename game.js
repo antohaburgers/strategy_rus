@@ -85,6 +85,7 @@ function setupLevels(){
  sel.addEventListener('change',()=>loadLevel(Number(sel.value)));
 }
 function loadLevel(i){
+ window.RUS_AUDIO?.end();
  state.index=i;state.level=D.levels[i];state.budget=state.level.budget;
  state.obstacles=new Map(state.level.obstacles.map(o=>[key(o.x,o.y),o.type]));
  state.placed=[];state.units=[];state.shots=[];state.particles=[];state.pools=[];state.fxTime=0;state.time=0;state.mode='prep';
@@ -111,11 +112,13 @@ function startBattle(){
  ...state.level.enemies.map(p=>makeSoldier(unitDefs.get(p.id),'enemy',p.x+.5,p.y+.5))
  ];
  state.time=0;state.shots=[];state.particles=[];state.pools=[];state.fxTime=0;state.mode='battle';$('result').classList.add('hidden');
+ window.RUS_AUDIO?.begin();
  notify('Бой идёт автоматически. Обе армии используют одинаковый алгоритм поиска целей и обхода препятствий.');
  updateControls();
 }
 function clearArmy(){state.placed=[];notify('Армия распущена. Бюджет восстановлен.');updateControls()}
 function showResult(win){
+ window.RUS_AUDIO?.end();
  state.mode=win?'win':'lose';
  $('resultTitle').textContent=win?'ПОБЕДА РУСОВ!':'РУСЫ ОТСТУПИЛИ';
  $('resultText').textContent=win?(state.index===D.levels.length-1?'Все 24 битвы пройдены! Можно повторить сражение.':'Хорошая расстановка! Следующая битва открыта.'):'Поменяй состав или построение и попробуй ещё раз.';
@@ -208,6 +211,7 @@ function attack(u,t){
  u.attackCount++;u.wait=u.cooldown;u.flash=.23;
  if(u.role==='ranged')state.shots.push({x:u.x,y:u.y,tx:t.x,ty:t.y,time:0,duration:.28,enemy:u.team==='enemy',kind:u.id==='l_spitter'?'poison':u.id==='p_spear'?'javelin':'arrow'});
  hitEffect(t);
+ window.RUS_AUDIO?.hit(u,t);
  if(t.hpNow===0){t.deadAt=state.time;t.deadVisualAt=state.fxTime;t.motion=0;t.flash=0;state.pools.push({x:t.x,y:t.y,born:state.fxTime,size:t.big?1.65:t.id==='rider'||t.shape.includes('horse')?1.35:1,seed:t.idNum})}
 }
 // Cosmetic effects have a separate clock so the final fall also completes after victory.
@@ -258,6 +262,7 @@ function tick(dt){
    chase(u,t,dt);
   }
  }
+ window.RUS_AUDIO?.update(state.units);
  state.shots=state.shots.filter(p=>(p.time+=dt)<p.duration);
  const rus=state.units.filter(u=>u.team==='rus'&&u.hpNow>0),foes=state.units.filter(u=>u.team==='enemy'&&u.hpNow>0);
  if(!rus.length||!foes.length){showResult(!!rus.length);return}

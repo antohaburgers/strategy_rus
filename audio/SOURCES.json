@@ -1,0 +1,137 @@
+[
+  {
+    "file": "cry-01.mp3",
+    "author": "HaelDB",
+    "source": "https://opengameart.org/content/male-gruntyelling-sounds",
+    "original": "3grunt1.wav",
+    "license": "CC0-1.0",
+    "changes": "Trimmed silence, peak level adjusted, short fades, mono MP3 44.1 kHz / 64 kbps",
+    "sha256": "d4a8abc13f52ce25835007e232a4b20aeaf181c374c693dab070fc29dea7882f"
+  },
+  {
+    "file": "cry-02.mp3",
+    "author": "HaelDB",
+    "source": "https://opengameart.org/content/male-gruntyelling-sounds",
+    "original": "3grunt2.wav",
+    "license": "CC0-1.0",
+    "changes": "Trimmed silence, peak level adjusted, short fades, mono MP3 44.1 kHz / 64 kbps",
+    "sha256": "ebb454ad3511190787a4495cd0b760ddd13e25b5ef4808d8db01962bc6083bf1"
+  },
+  {
+    "file": "cry-03.mp3",
+    "author": "HaelDB",
+    "source": "https://opengameart.org/content/male-gruntyelling-sounds",
+    "original": "3grunt3.wav",
+    "license": "CC0-1.0",
+    "changes": "Trimmed silence, peak level adjusted, short fades, mono MP3 44.1 kHz / 64 kbps",
+    "sha256": "94f6862e29d9770c648f3d2e1f921ffbb6129ef6264d4daabfd5a6719c70fcb6"
+  },
+  {
+    "file": "cry-04.mp3",
+    "author": "HaelDB",
+    "source": "https://opengameart.org/content/male-gruntyelling-sounds",
+    "original": "3grunt4.wav",
+    "license": "CC0-1.0",
+    "changes": "Trimmed silence, peak level adjusted, short fades, mono MP3 44.1 kHz / 64 kbps",
+    "sha256": "226b88c82d09303b099017f3a0af2b90316e038c4fc5c1c31e0500727d986e80"
+  },
+  {
+    "file": "horse-neigh.mp3",
+    "author": "Joseph SARDIN",
+    "source": "https://bigsoundbank.com/neighing-of-a-horse-s0460.html",
+    "original": "0460.mp3",
+    "license": "CC0-1.0",
+    "changes": "Trimmed silence, peak level adjusted, short fades, mono MP3 44.1 kHz / 64 kbps",
+    "sha256": "a429ff1ce160bb176901d47552b7d76ed27771752edff3bc87d8eb4e56adb51b"
+  },
+  {
+    "file": "sword-01.mp3",
+    "author": "StarNinjas",
+    "source": "https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes",
+    "original": "sword_clash.1.ogg",
+    "license": "CC0-1.0",
+    "changes": "Trimmed silence, peak level adjusted, short fades, mono MP3 44.1 kHz / 64 kbps",
+    "sha256": "7c90205c1a5fbfb6b1cd24bac00f3cd7939ade369eb7e2995e83d5965d375743"
+  },
+  {
+    "file": "sword-02.mp3",
+    "author": "StarNinjas",
+    "source": "https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes",
+    "original": "sword_clash.2.ogg",
+    "license": "CC0-1.0",
+    "changes": "Trimmed silence, peak level adjusted, short fades, mono MP3 44.1 kHz / 64 kbps",
+    "sha256": "b4549ecee5701d0bb2133c8a3156073c78b02b2ed57b4724cc0239ea32df5c43"
+  },
+  {
+    "file": "sword-03.mp3",
+    "author": "StarNinjas",
+    "source": "https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes",
+    "original": "sword_clash.3.ogg",
+    "license": "CC0-1.0",
+    "changes": "Trimmed silence, peak level adjusted, short fades, mono MP3 44.1 kHz / 64 kbps",
+    "sha256": "8a359feeb66aec9ad66aa0cc319f2e92e2c6e08671d6b1c38a6ffe526e53fa71"
+  },
+  {
+    "file": "sword-04.mp3",
+    "author": "StarNinjas",
+    "source": "https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes",
+    "original": "sword_clash.4.ogg",
+    "license": "CC0-1.0",
+    "changes": "Trimmed silence, peak level adjusted, short fades, mono MP3 44.1 kHz / 64 kbps",
+    "sha256": "3cb28967801b1fdc0f4377b5d3bf91318c55646eac5e1584bfc1887399643bb2"
+  },
+  {
+    "file": "sword-05.mp3",
+    "author": "StarNinjas",
+    "source": "https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes",
+    "original": "sword_clash.5.ogg",
+    "license": "CC0-1.0",
+    "changes": "Trimmed silence, peak level adjusted, short fades, mono MP3 44.1 kHz / 64 kbps",
+    "sha256": "e140bbad43cdeab805d006b01fc3c8e456c56d8b2edc7e737d82ede24b77a63f"
+  },
+  {
+    "file": "sword-06.mp3",
+    "author": "StarNinjas",
+    "source": "https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes",
+    "original": "sword_clash.6.ogg",
+    "license": "CC0-1.0",
+    "changes": "Trimmed silence, peak level adjusted, short fades, mono MP3 44.1 kHz / 64 kbps",
+    "sha256": "73ad15acebca50563ca72872ae7cdcc18b5d09f09c360b03713eb27841ad74bd"
+  },
+  {
+    "file": "sword-07.mp3",
+    "author": "StarNinjas",
+    "source": "https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes",
+    "original": "sword_clash.7.ogg",
+    "license": "CC0-1.0",
+    "changes": "Trimmed silence, peak level adjusted, short fades, mono MP3 44.1 kHz / 64 kbps",
+    "sha256": "f5812878f6c0a4e1b4d166f4918655ad8c78f017da451d1746bdda0ae2f1c47e"
+  },
+  {
+    "file": "sword-08.mp3",
+    "author": "StarNinjas",
+    "source": "https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes",
+    "original": "sword_clash.8.ogg",
+    "license": "CC0-1.0",
+    "changes": "Trimmed silence, peak level adjusted, short fades, mono MP3 44.1 kHz / 64 kbps",
+    "sha256": "63bf4f2cb02e2af3bcf07c04e185dcfca4ba58fd3ae800e76ba61c5c3de83865"
+  },
+  {
+    "file": "sword-09.mp3",
+    "author": "StarNinjas",
+    "source": "https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes",
+    "original": "sword_clash.9.ogg",
+    "license": "CC0-1.0",
+    "changes": "Trimmed silence, peak level adjusted, short fades, mono MP3 44.1 kHz / 64 kbps",
+    "sha256": "78903099df6fa3cc1a8b4537035535fec4fd9aa6ce9cd0214f987cd450a80adf"
+  },
+  {
+    "file": "sword-10.mp3",
+    "author": "StarNinjas",
+    "source": "https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes",
+    "original": "sword_clash.10.ogg",
+    "license": "CC0-1.0",
+    "changes": "Trimmed silence, peak level adjusted, short fades, mono MP3 44.1 kHz / 64 kbps",
+    "sha256": "3b6c4769a2d70b8faeab9e39d63e7d718345200b26e92454d3c09d93871fd044"
+  }
+]
