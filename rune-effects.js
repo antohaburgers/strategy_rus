@@ -7,29 +7,32 @@ const bear={id:'bear',name:'Медведь Велеса',hp:145,damage:19,cooldo
 function create(api,active,boss){
  const equipped=new Set(active),has=id=>equipped.has(id),living=team=>api.units().filter(u=>u.hpNow>0&&u.team===team);
  let attacks=0,reborn=false,lastStand=false,nextCall=30,nextStorm=15,nextBoss=({khan:12,batyr:8,lizard:10,koschei:14,emperor:10})[boss?.key]||10,closed=false;
+ const flash=id=>window.RUS_RUNE_ART?.activate(id);
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  const nearest=(units,t,count,radius=Infinity)=>units.filter(v=>v!==t&&dist(v,t)<=radius).sort((a,b)=>dist(a,t)-dist(b,t)).slice(0,count);
- function proc(source,target,amount,chain=has('wrath')){if(!target||closed)return;if(target.hpNow<=0)target=nearest(living(source.team==='rus'?'enemy':'rus'),target,1)[0];if(!target)return;api.bolt(source,target,amount,chain?2:0,false)}
+ function proc(source,target,amount,chain=has('wrath')){if(!target||closed)return;if(target.hpNow<=0)target=nearest(living(source.team==='rus'?'enemy':'rus'),target,1)[0];if(!target)return;if(chain&&has('wrath'))flash('wrath');api.bolt(source,target,amount,chain?2:0,false)}
  function start(formation){
+  for(const id of active)flash(id);
   if(!has('veles'))return;
   for(let i=4;i<formation.length;i+=5){if(living('rus').filter(u=>u.id==='bear').length>=3)break;api.spawn(bear,'rus',formation[i],{temporary:true,expiresAt:20,summoned:true})}
  }
  function attack(source,target){
   if(closed||source.team!=='rus')return;
   attacks++;
-  if(has('fury')&&attacks%10===0)proc(source,target,24*(source.damage/(source.baseDamage||source.damage)));
-  if(has('sky')&&source.magic&&source.attackCount%5===0)proc(source,target,source.damage);
+  if(has('fury')&&attacks%10===0){flash('fury');proc(source,target,24*(source.damage/(source.baseDamage||source.damage)))}
+  if(has('sky')&&source.magic&&source.attackCount%5===0){flash('sky');proc(source,target,source.damage)}
+  if(has('wrath')&&source.magic)flash('wrath');
  }
  function death(unit){
   if(closed||unit.team!=='rus'||unit.expired)return;
-  if(has('madness'))for(const ally of nearest(living('rus'),unit,60,3))ally.frenzyUntil=api.time()+5;
-  if(has('immortal')&&!reborn){reborn=true;unit.hpNow=Math.max(1,Math.round(unit.hp*.5));unit.deadAt=null;unit.deadVisualAt=null;unit.deathHandled=false;unit.electric=.25;unit.hurt=.18;return}
-  if(has('greatness')&&!lastStand&&living('rus').length===0){lastStand=true;const base=window.RUS_DATA.heroes.find(u=>u.id==='bogatyr');for(let i=0;i<3;i++)api.spawn(base,'rus',unit,{summoned:true,legendary:true,boost:1.4})}
+  if(has('madness')){flash('madness');for(const ally of nearest(living('rus'),unit,60,3))ally.frenzyUntil=api.time()+5}
+  if(has('immortal')&&!reborn){flash('immortal');reborn=true;unit.hpNow=Math.max(1,Math.round(unit.hp*.5));unit.deadAt=null;unit.deadVisualAt=null;unit.deathHandled=false;unit.electric=.25;unit.hurt=.18;return}
+  if(has('greatness')&&!lastStand&&living('rus').length===0){flash('greatness');lastStand=true;const base=window.RUS_DATA.heroes.find(u=>u.id==='bogatyr');for(let i=0;i<3;i++)api.spawn(base,'rus',unit,{summoned:true,legendary:true,boost:1.4})}
  }
  function rate(unit){
   let bonus=0;
   if(unit.team==='rus'){
-   if(has('berserk')&&unit.hpNow<unit.hp*.3)bonus+=.5;
+   if(has('berserk')&&unit.hpNow<unit.hp*.3){bonus+=.5;if(!unit._runeBerserk){flash('berserk');unit._runeBerserk=true}}else unit._runeBerserk=false;
    if((unit.frenzyUntil||0)>api.time())bonus+=.25;
   }
   if((unit.hasteUntil||0)>api.time())bonus+=unit.hasteAmount||.25;
@@ -60,8 +63,8 @@ function create(api,active,boss){
  function tick(time){
   if(closed)return;
   for(const u of api.units())if(u.hpNow>0&&u.temporary&&time>=u.expiresAt){u.expired=true;u.hpNow=0;u.deadAt=time;u.deadVisualAt=api.fxTime();u.motion=0}
-  if(has('call')&&time>=nextCall){nextCall+=30;if(living('rus').filter(u=>u.summoned&&!u.temporary&&!u.legendary).length<5)api.spawn(window.RUS_DATA.heroes.find(u=>u.id==='militia'),'rus',{x:1.5,y:4.5},{summoned:true})}
-  if(has('wisdom')&&time>=nextStorm){nextStorm+=15;const enemies=living('enemy');for(let i=enemies.length-1;i>0;i--){const j=Math.floor(api.random()*(i+1));[enemies[i],enemies[j]]=[enemies[j],enemies[i]]}const source=living('rus')[0];if(source)for(const t of enemies.slice(0,5))proc(source,t,32,false)}
+  if(has('call')&&time>=nextCall){flash('call');nextCall+=30;if(living('rus').filter(u=>u.summoned&&!u.temporary&&!u.legendary).length<5)api.spawn(window.RUS_DATA.heroes.find(u=>u.id==='militia'),'rus',{x:1.5,y:4.5},{summoned:true})}
+  if(has('wisdom')&&time>=nextStorm){flash('wisdom');nextStorm+=15;const enemies=living('enemy');for(let i=enemies.length-1;i>0;i--){const j=Math.floor(api.random()*(i+1));[enemies[i],enemies[j]]=[enemies[j],enemies[i]]}const source=living('rus')[0];if(source)for(const t of enemies.slice(0,5))proc(source,t,32,false)}
   if(boss)bossTick(time);
  }
  function end(){closed=true;for(const u of api.units()){u.frenzyUntil=0;u.hasteUntil=0;u.mightUntil=0;u.wardUntil=0;u.abilityFlash=0}}

@@ -22,6 +22,8 @@ jobs:
       - name: Check game and roguelike
         run: |
           for file in *.js; do node --check "$file"; done
+          node tests/visual-art.cjs
+          node tests/visual-ui.cjs
           node tests/roguelike.cjs
           node tests/roguelike-battle.cjs
           node tests/battle-audio.cjs

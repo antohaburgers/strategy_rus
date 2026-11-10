@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#192e28">
-<meta name="app-version" content="2026.11.10-rogue1">
+<meta name="app-version" content="2026.11.10-rod21">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,13 +18,14 @@
 <body class="at-title">
 <section id="titleScreen" class="titleScreen" aria-labelledby="titleName">
  <canvas id="titleArt" aria-hidden="true"></canvas>
+ <div id="titleStorm" aria-hidden="true"></div>
  <div class="titleVignette" aria-hidden="true"></div>
  <div class="titleContent">
-  <div class="titleOrnament" aria-hidden="true">✦ ━ ◆ ━ ✦</div>
+  <div class="titleOrnament">СЛАВА РОДУ!</div>
   <h1 id="titleName">РУСЫ<span>ПРОТИВ ВСЕХ</span></h1>
   <button id="startGame" type="button">НАЧАТЬ ГОЙДУ!</button>
   <button id="newGame" class="newGoida" type="button" hidden>НОВАЯ ГОЙДА</button>
-  <p class="titleMode">РУНИЧЕСКИЙ РОГАЛИК · ОДНО ПОРАЖЕНИЕ — КОНЕЦ ЗАБЕГА</p>
+  <p class="titleMode">РУНИЧЕСКИЙ РОГАЛИК</p>
  </div>
  <div class="titleBorder" aria-hidden="true"></div>
 </section>
@@ -53,7 +54,7 @@
    <button id="clear" class="secondary">↻ <span>Сброс армии</span></button>
   </div>
  </aside>
- <footer class="controls"><div class="runeBar"><div id="activeRunes" class="runeStrip" aria-label="Пять слотов рун"></div><span id="runCoins" class="runCoins">● 0</span></div><div id="shop" class="shop" role="group" aria-label="Выбор русских воинов"></div></footer>
+ <footer class="controls"><div class="runeBar"><div id="activeRunes" class="runeStrip" aria-label="Пять слотов рун"></div><span id="runeWhisper" class="runeWhisper" aria-live="polite"></span><span id="runCoins" class="runCoins">● 0</span></div><div id="shop" class="shop" role="group" aria-label="Выбор русских воинов"></div></footer>
  <section id="menuPanel" class="menuPanel hidden" aria-label="Меню игры">
   <strong>РУНИЧЕСКИЙ РОГАЛИК</strong><p id="runMenuSummary"></p>
   <p>Четыре обычных боя, затем босс. Одно поражение завершит забег.</p>
@@ -74,6 +75,6 @@
 <p id="saveNotice" class="saveNotice" hidden>Не удалось сохранить забег на устройстве. Проверь свободное место и доступ к хранилищу.</p>
 <section id="runScreen" class="runScreen" role="dialog" aria-label="Забег и лавка рун" aria-modal="true" hidden></section>
 <section id="runModal" class="runModal" role="dialog" aria-label="Информация о руне" aria-modal="true" hidden></section>
-<script src="./game-data.js"></script><script src="./roguelike.js"></script><script src="./rune-effects.js"></script><script src="./unit-renderer.js"></script><script src="./battle-audio.js"></script><script src="./background-music.js"></script><script src="./game.js"></script><script src="./rogue-ui.js"></script><script src="./pwa.js"></script><script src="./main-menu.js"></script>
+<script src="./game-data.js"></script><script src="./roguelike.js"></script><script src="./rune-art.js"></script><script src="./rune-effects.js"></script><script src="./unit-renderer.js"></script><script src="./battle-audio.js"></script><script src="./background-music.js"></script><script src="./game.js"></script><script src="./rogue-ui.js"></script><script src="./pwa.js"></script><script src="./main-menu.js"></script>
 </body></html>
 
