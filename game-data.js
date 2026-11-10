@@ -6,7 +6,8 @@
     {id:'spear', name:'Копейщик', short:'Копейщик', cost:15, hp:78, damage:13, cooldown:1.15, range:1.45, speed:1.25, armor:0, role:'melee', shape:'spear', bonusBig:1.4, color:'#d9c28b'},
     {id:'archer', name:'Лучник', short:'Лучник', cost:20, hp:58, damage:11, cooldown:1.5, range:5, speed:1.35, armor:0, role:'ranged', shape:'bow', color:'#b0bd77'},
     {id:'rider', name:'Конный дружинник', short:'Всадник', cost:32, hp:115, damage:18, cooldown:1.15, range:1.1, speed:2.2, armor:.08, role:'melee', shape:'horse', charge:1.3, color:'#caa071'},
-    {id:'bogatyr', name:'Богатырь', short:'Богатырь', cost:48, hp:215, damage:24, cooldown:1.25, range:1.25, speed:1.3, armor:.15, role:'melee', shape:'hero', color:'#ead17b'}
+    {id:'bogatyr', name:'Богатырь', short:'Богатырь', cost:48, hp:215, damage:24, cooldown:1.25, range:1.25, speed:1.3, armor:.15, role:'melee', shape:'hero', color:'#ead17b'},
+    {id:'volkhv',name:'Волхв',short:'Волхв',cost:36,hp:44,damage:34,cooldown:2.5,range:5.6,speed:.85,armor:0,role:'ranged',shape:'staff',magic:true,color:'#74cddb'}
   ];
   const enemies = [
     {id:'p_foot',name:'Степной налётчик',hp:54,damage:9,cooldown:.95,range:.8,speed:1.85,shape:'sword',color:'#bd704a'},
@@ -57,5 +58,57 @@
   function obstaclesFrom(s){return s.split(/\s+/).filter(Boolean).map(item=>{const [type,xy]=item.split(':');const [x,y]=xy.split(',').map(Number);return {type,x,y}})}
   function spawnFrom(s){const queue=[];for(const item of s.split(/\s+/)){const [id,n]=item.split(':');for(let i=0;i<+n;i++)queue.push(id)}const rows=[4,5,3,6,2,7,1,8,0,9];return queue.map((id,i)=>({id,x:8+Math.floor(i/10),y:rows[i%10]}))}
   const levels=levelsRaw.map((r,i)=>({id:i+1,chapter:Math.floor(i/4)+1,faction:r[0],title:r[1],biome:r[2],budget:r[3],obstacles:obstaclesFrom(r[4]),enemies:spawnFrom(r[5])}));
-  window.RUS_DATA={W:12,H:10,DEPLOY:4,heroes,enemies,levels};
+  // A saved seed reproduces the whole campaign, including retries and future cycles.
+  const campaignKey='rus-campaign-v2';
+  let saved;try{saved=JSON.parse(localStorage.getItem(campaignKey))}catch{}
+  const valid=saved&&Number.isInteger(saved.seed)&&saved.seed>0;
+  const campaign=valid?saved:{seed:(Math.random()*4294967294>>>0)+1,current:0};
+  campaign.current=Math.max(0,Math.min(9999,Math.floor(Number(campaign.current)||0)));
+  function persist(){try{localStorage.setItem(campaignKey,JSON.stringify(campaign))}catch{}}
+  persist();
+  let randomState=campaign.seed>>>0;
+  function random(){randomState=(randomState+0x6D2B79F5)>>>0;let t=randomState;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296}
+  function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+  const factions=[...new Set(levels.map(l=>l.faction))],byFaction=new Map(factions.map(f=>[f,levels.filter(l=>l.faction===f)]));
+  const generated=[],lastMaps=new Map();let cycle=[],previousFaction=null;
+  const definitions=new Map(enemies.map(u=>[u.id,u]));
+  // Threat includes durability, DPS, armour, reach and mobility; factions share a budget.
+  function threat(u){return Math.sqrt(u.hp/(1-u.armor)*u.damage/u.cooldown)*(u.role==='ranged'?1.18:1)*(1+(u.speed-1)*.06)}
+  const reference=4*threat(definitions.get('p_foot'))+threat(definitions.get('p_spear'));
+  function nextCycle(){
+    if(!generated.length){
+      const early=shuffle(factions.slice(1)),special=['Ящеры','Зомби'];
+      // Shuffle only valid permutations: both special factions occupy positions 2–4.
+      while(!special.every(f=>early.indexOf(f)<3)){const next=shuffle(factions.slice(1));early.splice(0,early.length,...next)}
+      return [factions[0],...early];
+    }
+    const next=shuffle(factions);if(next[0]===previousFaction){const j=1+Math.floor(random()*(next.length-1));[next[0],next[j]]=[next[j],next[0]]}return next;
+  }
+  function generate(){
+    if(!cycle.length)cycle=nextCycle();
+    const faction=cycle.shift(),index=generated.length,n=index+1,maps=byFaction.get(faction)||levels;
+    let choices=maps.filter(m=>m.id!==lastMaps.get(faction));if(!choices.length)choices=maps;
+    const map=index===0?levels[0]:(choices[Math.floor(random()*choices.length)]||levels[0]);
+    lastMaps.set(faction,map.id);previousFaction=faction;
+    // Player economy follows the existing first chapter, then grows smoothly.
+    const budget=n<=4?[90,110,135,165][index]:Math.round(n<=24?165+8*(n-4):325+125*(1-Math.exp(-(n-24)/36)));
+    const ids=[...new Set(maps.flatMap(m=>m.enemies.map(e=>e.id)))];
+    const pool=ids.map(id=>definitions.get(id)).filter(u=>u&&(!(u.big||u.armor>=.15)||n>=7)&&(!u.id.endsWith('rex')||n>=13));
+    if(!pool.length)pool.push(definitions.get(ids[0])||enemies[0]);
+    const target=reference*budget/90,army=[];let used=0;
+    while(army.length<40){
+      const affordable=pool.filter(u=>threat(u)<=target-used+target*.07);
+      if(!affordable.length)break;
+      const def=affordable[Math.floor(random()*affordable.length)];army.push(def.id);used+=threat(def);
+    }
+    if(!army.length)army.push(pool[0].id);
+    const rows=shuffle([0,1,2,3,4,5,6,7,8,9]),blocked=new Set(map.obstacles.filter(o=>['rock','tree','water'].includes(o.type)).map(o=>o.x+','+o.y));
+    const cells=[];for(let x=8;x<12;x++)for(const y of rows)if(!blocked.has(x+','+y))cells.push({x,y});
+    const enemiesHere=index===0?map.enemies:army.slice(0,cells.length).map((id,i)=>({id,...cells[i]}));
+    generated.push({...map,id:n,mapId:map.id,budget,enemies:enemiesHere,enemyScale:index===0?1:Math.max(1,target/(used||target))});
+  }
+  function getLevel(index){index=Math.max(0,Math.min(9999,Math.floor(index)||0));while(generated.length<=index)generate();return generated[index]}
+  function setCurrent(index){campaign.current=index;persist()}
+  window.RUS_DATA={W:12,H:10,DEPLOY:4,heroes,enemies,levels:generated,getLevel,setCurrent,campaign};
+  for(let i=0;i<Math.max(24,campaign.current+2);i++)getLevel(i);
 })();
