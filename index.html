@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#192e28">
-<meta name="app-version" content="2026.11.10-pwa2">
+<meta name="app-version" content="2026.11.10-pwa3">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -29,17 +29,16 @@
  <main class="field" id="field">
   <canvas id="battle" aria-label="Поле боя. Выберите бойца внизу и коснитесь клетки слева."></canvas>
   <div class="tip" id="tip"></div>
-  <div id="result" class="result hidden" role="status" aria-live="polite"><strong id="resultTitle"></strong><span id="resultText"></span></div>
+  <div id="result" class="result hidden" role="status" aria-live="polite"><strong id="resultTitle"></strong><span id="resultText"></span><div class="resultActions"><button id="next" class="primary hidden">Дальше →</button><button id="resultRetry" class="secondary">↻ Повторить</button></div></div>
  </main>
  <aside class="commandPanel" aria-label="Управление битвой">
   <button id="menu" aria-expanded="false" aria-controls="menuPanel">☰ <span>Меню</span></button>
   <div class="camera"><button id="minus" aria-label="Отдалить карту">−</button><button id="home" aria-label="Всё поле">⌖</button><button id="plus" aria-label="Приблизить карту">+</button></div>
   <button id="fullscreen" class="secondary" aria-label="На весь экран">⛶ <span>На весь экран</span></button>
   <div class="actions">
+   <button id="fight" class="primary">⚔<span>В БОЙ!</span></button>
    <button id="clear" class="secondary">↻ <span>Сброс армии</span></button>
    <button id="retry" class="secondary hidden">Повторить</button>
-   <button id="next" class="secondary hidden">Дальше →</button>
-   <button id="fight" class="primary">⚔<span>В БОЙ!</span></button>
   </div>
  </aside>
  <footer class="controls"><div id="shop" class="shop" role="group" aria-label="Выбор русских воинов"></div></footer>

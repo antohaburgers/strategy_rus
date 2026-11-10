@@ -118,7 +118,7 @@ function clearArmy(){state.placed=[];notify('Армия распущена. Бю
 function showResult(win){
  state.mode=win?'win':'lose';
  $('resultTitle').textContent=win?'ПОБЕДА РУСОВ!':'РУСЫ ОТСТУПИЛИ';
- $('resultText').textContent=win?'Хорошая расстановка! Следующая битва открыта.':'Поменяй состав или построение и попробуй ещё раз.';
+ $('resultText').textContent=win?(state.index===D.levels.length-1?'Все 24 битвы пройдены! Можно повторить сражение.':'Хорошая расстановка! Следующая битва открыта.'):'Поменяй состав или построение и попробуй ещё раз.';
  $('result').classList.remove('hidden');
  if(win&&state.level.id>=maxUnlocked&&maxUnlocked<24){
   maxUnlocked=state.level.id+1;
@@ -449,6 +449,7 @@ $('fullscreen').addEventListener('click',async()=>{
 $('clear').addEventListener('click',clearArmy);
 $('fight').addEventListener('click',startBattle);
 $('retry').addEventListener('click',()=>loadLevel(state.index));
+$('resultRetry').addEventListener('click',()=>loadLevel(state.index));
 $('next').addEventListener('click',()=>loadLevel(Math.min(state.index+1,D.levels.length-1)));
 function frame(t){
  const delta=Math.min(.08,(t-(state.last||t))/1000);
