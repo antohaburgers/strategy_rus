@@ -1,7 +1,7 @@
 /* Network first: the permanent Home Screen URL loads current code whenever online.
  * Bump RELEASE with the HTML/version.json on each release; do not interrupt battles. */
 'use strict';
-const RELEASE='2026.11.10-title1',PREFIX='rus-game-',CACHE=PREFIX+RELEASE;
+const RELEASE='2026.11.10-volume1',PREFIX='rus-game-',CACHE=PREFIX+RELEASE;
 const CORE=['./','./index.html','./style.css','./game-data.js','./unit-renderer.js','./game.js','./pwa.js','./battle-audio.js','./background-music.js','./main-menu.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/icon-maskable.png','./icons/apple-touch-icon.png'];
 const SOUNDS=[...Array.from({length:10},(_,i)=>`./audio/sword-${String(i+1).padStart(2,'0')}.mp3`),...Array.from({length:4},(_,i)=>`./audio/cry-${String(i+1).padStart(2,'0')}.mp3`),'./audio/horse-neigh.mp3'];
 CORE.push(...SOUNDS);

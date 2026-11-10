@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#192e28">
-<meta name="app-version" content="2026.11.10-title1">
+<meta name="app-version" content="2026.11.10-volume1">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -60,7 +60,9 @@
   <button id="installGame" class="hidden">Установить игру</button>
   <button id="updateGame" class="hidden">Обновить игру</button>
   <button id="musicToggle" aria-pressed="true">🎵 Музыка: вкл.</button>
+  <div class="volumeControl"><label for="musicVolume">Громкость музыки <output id="musicVolumeValue" for="musicVolume">35%</output></label><input id="musicVolume" type="range" min="0" max="100" step="1" value="35" aria-label="Громкость музыки"></div>
   <button id="soundToggle" aria-pressed="true">🔊 Звуки: вкл.</button>
+  <div class="volumeControl"><label for="soundVolume">Громкость эффектов <output id="soundVolumeValue" for="soundVolume">50%</output></label><input id="soundVolume" type="range" min="0" max="100" step="1" value="50" aria-label="Громкость эффектов"></div>
   <button id="closeMenu">Вернуться к дружине</button>
  </section>
  <div class="rotatePrompt"><div aria-hidden="true">↻</div><strong>Поверни телефон</strong><span>Дружина ждёт в альбомном режиме</span></div>

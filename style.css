@@ -38,3 +38,11 @@ html,body,#app{overscroll-behavior:none;touch-action:manipulation;-webkit-user-s
 #startGame:hover{filter:brightness(1.13)}#startGame:active{transform:translateY(4px)}#startGame:focus-visible{outline:3px solid #fff0c2;outline-offset:7px}
 @media(orientation:portrait){.titleContent{justify-content:flex-start;padding-top:23vh}.titleContent h1{font-size:clamp(66px,20vw,110px)}.titleContent h1 span{font-size:.22em;letter-spacing:.22em}#startGame{margin-top:10vh;padding:19px 25px;min-height:62px}.titleOrnament{font-size:12px}}
 @media(max-height:440px) and (orientation:landscape){.titleContent h1{font-size:clamp(62px,17vh,90px);margin-top:10px}.titleContent h1 span{margin-top:10px}.titleOrnament{font-size:11px}#startGame{margin-top:27px;min-height:54px;padding:15px 30px;font-size:19px}}
+
+/* Native range controls support touch dragging and keyboard adjustment. */
+.menuPanel{max-height:calc(100% - 24px - env(safe-area-inset-bottom));overflow-y:auto;overscroll-behavior:contain}
+.volumeControl{margin:6px 0 13px;padding:8px 10px 2px;background:#122c2355;border:1px solid #81946b44;border-radius:6px}
+.menuPanel .volumeControl label{display:flex;justify-content:space-between;align-items:center;gap:10px;color:#dce3c9;font-size:11px;margin:0}
+.volumeControl output{color:#f0d298;font-variant-numeric:tabular-nums;min-width:35px;text-align:right}
+.volumeControl input[type=range]{display:block;width:100%;height:40px;margin:0;cursor:pointer;accent-color:#dfc087;touch-action:pan-y}
+.volumeControl input:focus-visible{outline:2px solid #f4d18b;outline-offset:2px;border-radius:4px}

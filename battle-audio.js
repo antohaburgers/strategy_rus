@@ -5,6 +5,11 @@ const files={sword:Array.from({length:10},(_,i)=>`./audio/sword-${String(i+1).pa
 const buffers=new Map(),pending=new Map(),playing=new Set(),bags={sword:[],cry:[],horse:[]},last={};
 let context,master,round=false,muted=false,nextSword=0,nextCry=0,nextHorse=0,nextVocal=0,cries=0,horses=0;
 try{muted=localStorage.getItem('rus-sound-muted-v1')==='1'}catch{}
+let volume=.5;
+try{const saved=localStorage.getItem('rus-sound-volume-v1');if(saved!==null&&saved.trim()!==''&&Number.isFinite(Number(saved)))volume=Math.max(0,Math.min(1,Number(saved)))}catch{}
+const slider=document.getElementById('soundVolume'),output=document.getElementById('soundVolumeValue');
+function applyVolume(){if(master)master.gain.setValueAtTime(muted?0:volume,context.currentTime);slider.value=String(Math.round(volume*100));output.textContent=slider.value+'%';slider.setAttribute('aria-valuetext',slider.value+'%')}
+slider.addEventListener('input',()=>{volume=Math.max(0,Math.min(1,Number(slider.value)/100));muted=volume===0;try{localStorage.setItem('rus-sound-volume-v1',String(volume));localStorage.setItem('rus-sound-muted-v1',muted?'1':'0')}catch{}applyVolume();label();if(muted)stopAll();else void unlock()});
 const button=document.getElementById('soundToggle'),rand=(lo,hi)=>lo+Math.random()*(hi-lo),mounted=u=>['rider','p_horse','c_horsebow','c_lancer'].includes(u.id),human=u=>!['l_','z_','d_'].some(prefix=>u.id.startsWith(prefix));
 function label(){button.textContent=muted?'🔇 Звуки: выкл.':'🔊 Звуки: вкл.';button.setAttribute('aria-pressed',String(!muted))}
 function stopAll(){for(const source of playing){try{source.stop()}catch{}}playing.clear()}
@@ -15,7 +20,7 @@ function load(url){
 function unlock(){
  if(muted)return Promise.resolve();
  try{
-  if(!context){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return Promise.resolve();context=new Audio();master=context.createGain();master.gain.value=.5;master.connect(context.destination)}
+  if(!context){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return Promise.resolve();context=new Audio();master=context.createGain();master.gain.value=muted?0:volume;master.connect(context.destination)}
   // Called synchronously from a real touch/click, including on iOS Safari.
   const resumed=context.state==='running'?Promise.resolve():context.resume();
   if(context.state!=='running'){const silent=context.createBufferSource();silent.buffer=context.createBuffer(1,1,context.sampleRate);silent.connect(master);silent.start()}
@@ -57,8 +62,8 @@ window.RUS_AUDIO={
   if(play('horse',.24,horse.x/12)){horses++;nextHorse=now+rand(12,18);nextVocal=now+3}
  }
 };
-button.addEventListener('click',()=>{muted=!muted;try{localStorage.setItem('rus-sound-muted-v1',muted?'1':'0')}catch{}if(muted)stopAll();else{resetDelays();void unlock()}label()});
+button.addEventListener('click',()=>{muted=!muted;if(!muted&&volume===0){volume=.5;try{localStorage.setItem('rus-sound-volume-v1',String(volume))}catch{}}applyVolume();try{localStorage.setItem('rus-sound-muted-v1',muted?'1':'0')}catch{}if(muted)stopAll();else{resetDelays();void unlock()}label()});
 for(const type of ['pointerdown','touchend','keydown'])document.addEventListener(type,()=>{void unlock()},{capture:true,passive:true});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAll();else resetDelays()});
-window.addEventListener('pagehide',()=>{round=false;stopAll()});label();
+window.addEventListener('pagehide',()=>{round=false;stopAll()});applyVolume();label();
 })();
