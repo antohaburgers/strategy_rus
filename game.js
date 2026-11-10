@@ -16,7 +16,7 @@ const biomes={
 };
 let maxUnlocked=1;
 try{maxUnlocked=Math.min(24,Math.max(1,Number(localStorage.getItem('rus-auto-unlocked-v1'))||1))}catch{}
-let state={index:0,mode:'prep',selected:'militia',placed:[],units:[],shots:[],obstacles:new Map(),
+let state={index:0,mode:'prep',selected:'militia',placed:[],units:[],shots:[],particles:[],pools:[],fxTime:0,obstacles:new Map(),
   budget:90,time:0,level:null,zoom:1,panX:0,panY:0,last:0,accum:0,hint:'',hover:null};
 let screenW=360,screenH=400,dpr=1,idCounter=1;
 const key=(x,y)=>x+','+y;
@@ -46,6 +46,7 @@ function makeSoldier(def,team,x,y){
  target:null,path:[],pathGoal:'',repath:0,flash:0,attackCount:0,walk:0,motion:0,hurt:0,facing:team==='enemy'?-1:1,deadAt:null};
 }
 function updateControls(){
+ window.dispatchEvent(new Event('rus:state'));
  $('budget').textContent='⚜ '+remaining()+' / '+state.budget;
  $('chapter').textContent='Глава '+state.level.chapter+' — '+state.level.faction;
  $('battleTime').textContent=state.mode==='prep'?'Подготовка':state.mode==='battle'?'Бой '+Math.floor(state.time)+' с':state.mode==='win'?'Победа':'Поражение';
@@ -86,7 +87,7 @@ function setupLevels(){
 function loadLevel(i){
  state.index=i;state.level=D.levels[i];state.budget=state.level.budget;
  state.obstacles=new Map(state.level.obstacles.map(o=>[key(o.x,o.y),o.type]));
- state.placed=[];state.units=[];state.shots=[];state.time=0;state.mode='prep';
+ state.placed=[];state.units=[];state.shots=[];state.particles=[];state.pools=[];state.fxTime=0;state.time=0;state.mode='prep';
  state.selected='militia';state.hover=null;
  $('result').classList.add('hidden');$('level').value=String(i);
  resetCamera();notify('Выбери воина и коснись свободной клетки слева. В бой можно отправить любую армию в пределах бюджета.');
@@ -109,7 +110,7 @@ function startBattle(){
  ...state.placed.map(p=>makeSoldier(unitDefs.get(p.id),'rus',p.x,p.y)),
  ...state.level.enemies.map(p=>makeSoldier(unitDefs.get(p.id),'enemy',p.x+.5,p.y+.5))
  ];
- state.time=0;state.shots=[];state.mode='battle';$('result').classList.add('hidden');
+ state.time=0;state.shots=[];state.particles=[];state.pools=[];state.fxTime=0;state.mode='battle';$('result').classList.add('hidden');
  notify('Бой идёт автоматически. Обе армии используют одинаковый алгоритм поиска целей и обхода препятствий.');
  updateControls();
 }
@@ -206,7 +207,34 @@ function attack(u,t){
  t.hpNow=Math.max(0,t.hpNow-damage);t.hurt=.18;
  u.attackCount++;u.wait=u.cooldown;u.flash=.23;
  if(u.role==='ranged')state.shots.push({x:u.x,y:u.y,tx:t.x,ty:t.y,time:0,duration:.28,enemy:u.team==='enemy',kind:u.id==='l_spitter'?'poison':u.id==='p_spear'?'javelin':'arrow'});
- if(t.hpNow===0)t.deadAt=state.time;
+ hitEffect(t);
+ if(t.hpNow===0){t.deadAt=state.time;t.deadVisualAt=state.fxTime;t.motion=0;t.flash=0;state.pools.push({x:t.x,y:t.y,born:state.fxTime,size:t.big?1.65:t.id==='rider'||t.shape.includes('horse')?1.35:1,seed:t.idNum})}
+}
+// Cosmetic effects have a separate clock so the final fall also completes after victory.
+function hitEffect(u){
+ for(let i=0;i<7;i++){
+  const angle=Math.random()*Math.PI*2,speed=18+Math.random()*45;
+  state.particles.push({x:u.x,y:u.y,dx:0,dy:-27,vx:Math.cos(angle)*speed,vy:Math.sin(angle)*speed-15,life:.38+Math.random()*.28,max:.66,r:1.2+Math.random()*1.3});
+ }
+ if(state.particles.length>240)state.particles.splice(0,state.particles.length-240);
+}
+function visualTick(dt){
+ state.fxTime+=dt;
+ for(const p of state.particles){p.life-=dt;p.dx+=p.vx*dt;p.dy+=p.vy*dt;p.vy+=95*dt}
+ state.particles=state.particles.filter(p=>p.life>0);
+}
+function poolsDraw(){
+ for(const p of state.pools){const pos=iso(p.x,p.y),grow=clamp((state.fxTime-p.born)/.5,.12,1);
+  g.save();g.translate(pos.x,pos.y+2);g.scale(artScale*p.size*grow,artScale*p.size*grow);
+  oval(-7,1,15,5,'#8e2438a8');oval(4,0,13,4,'#ac2c40bf');oval(-4,-1,9,2.5,'#d3484a80');
+  for(let i=0;i<3;i++)oval((hash(p.seed,i,4)-.5)*42,3+(hash(i,p.seed,6)-.5)*12,1.5+hash(i,p.seed,5)*2.4,1.3,'#a62b3cb3');
+  g.restore();
+ }
+}
+function particlesDraw(){
+ for(const p of state.particles){const pos=iso(p.x,p.y);g.save();g.translate(pos.x,pos.y);g.scale(artScale,artScale);g.globalAlpha=clamp(p.life/.2,0,1);
+  segment(p.dx-p.vx*.025,p.dy-p.vy*.025,p.dx,p.dy,'#b52d48',p.r);oval(p.dx,p.dy,p.r,p.r*.75,'#ef565a');g.restore();
+ }
 }
 function tick(dt){
  if(state.mode!=='battle')return;
@@ -299,7 +327,7 @@ function objectDraw(o){
 function unitDraw(u){
  const p=iso(u.x,u.y),dead=u.hpNow<=0;
  g.save();g.translate(p.x,p.y);g.scale(artScale,artScale);
- window.RUS_ART.draw(g,u,state.mode==='prep'?state.last/1000:state.time);
+ window.RUS_ART.draw(g,u,state.fxTime);
  if(!dead){
   const y=-window.RUS_ART.height(u),w=u.big||u.id==='bogatyr'?34:27;
   g.fillStyle='#152d29d9';g.beginPath();g.roundRect(-w/2-1,y-1,w+2,5,2);g.fill();
@@ -355,12 +383,14 @@ function render(){
   const ok=state.hover.x<D.DEPLOY&&!solid(state.hover.x,state.hover.y);
   drawDiamond(p,ok?'#bde6a075':'#e879647d',ok?'#e0f2ce':'#f7ae9b');
  }
+ poolsDraw();
+ if(state.mode!=='prep')for(const u of state.units)if(u.hpNow<=0)unitDraw(u);
  const drawables=[{sort:-TH*.15,kind:'flag',value:{enemy:false}},{sort:-TH*.15,kind:'flag',value:{enemy:true}}];
  state.level.obstacles.forEach(o=>{if(o.type!=='water')drawables.push({sort:iso(o.x+.5,o.y+.5).y,kind:'obstacle',value:o})});
  if(state.mode==='prep'){
   state.placed.forEach(p=>drawables.push({sort:iso(p.x,p.y).y,kind:'unit',value:{...unitDefs.get(p.id),team:'rus',x:p.x,y:p.y,hpNow:unitDefs.get(p.id).hp,walk:0,flash:0}}));
   state.level.enemies.forEach(p=>drawables.push({sort:iso(p.x+.5,p.y+.5).y,kind:'unit',value:{...unitDefs.get(p.id),team:'enemy',x:p.x+.5,y:p.y+.5,hpNow:unitDefs.get(p.id).hp,walk:0,flash:0}}));
- }else state.units.forEach(u=>drawables.push({sort:iso(u.x,u.y).y,kind:'unit',value:u}));
+ }else state.units.filter(u=>u.hpNow>0).forEach(u=>drawables.push({sort:iso(u.x,u.y).y,kind:'unit',value:u}));
  drawables.sort((a,b)=>a.sort-b.sort);
  for(const d of drawables)if(d.kind==='unit')unitDraw(d.value);else if(d.kind==='flag')flagDraw(d.value.enemy);else objectDraw(d.value);
  for(const p of state.shots){const a=iso(p.x,p.y),b=iso(p.tx,p.ty),t=clamp(p.time/p.duration,0,1);
@@ -370,13 +400,15 @@ function render(){
   if(p.kind==='poison'){segment(-12,0,0,0,'#b5d77566',3);oval(0,0,4,3,'#d6ec89')}
   else {segment(-20,0,-7,0,'#f4ddb34a',1.5);segment(p.kind==='javelin'?-19:-10,0,3,0,'#d9bf84',1.5);poly([[5,0],[0,-2],[0,2]],'#eee7d0');segment(-9,0,-12,-2,'#e1d8c3',1)}
   g.restore();}
+ particlesDraw();
  g.restore();
 }
-const pointers=new Map();let gesture=false;
+const pointers=new Map();let gesture=false,lastPlacementTap={time:-Infinity,x:0,y:0};
 function pointerEnd(e,cancel=false){
  const p=pointers.get(e.pointerId);if(!p)return;
  const tap=!cancel&&!gesture&&pointers.size===1&&!p.moved;
- if(tap){const cell=cellAt({x:p.x,y:p.y});placeAt(cell.x,cell.y)}
+ if(tap){const now=performance.now(),duplicate=now-lastPlacementTap.time<280&&Math.hypot(p.x-lastPlacementTap.x,p.y-lastPlacementTap.y)<12;
+  if(!duplicate){const cell=cellAt({x:p.x,y:p.y});placeAt(cell.x,cell.y);lastPlacementTap={time:now,x:p.x,y:p.y}}}
  pointers.delete(e.pointerId);if(pointers.size===0)gesture=false;
 }
 c.addEventListener('pointerdown',e=>{
@@ -422,8 +454,9 @@ function frame(t){
  const delta=Math.min(.08,(t-(state.last||t))/1000);
  state.last=t;state.accum=Math.min(.15,state.accum+delta);
  let count=0;while(state.accum>=1/30&&count++<5){tick(1/30);state.accum-=1/30}
- render();requestAnimationFrame(frame);
+ visualTick(delta);render();requestAnimationFrame(frame);
 }
+window.RUS_GAME_IS_BUSY=()=>state.mode==='battle'||(state.mode==='prep'&&state.placed.length>0);
 setupShop();setupLevels();resize();loadLevel(0);
 if('ResizeObserver' in window)new ResizeObserver(resize).observe(field);
 else window.addEventListener('resize',resize);

@@ -120,19 +120,18 @@ window.RUS_ART={
  height(u){return (['rider','p_horse','c_horsebow','c_lancer'].includes(u.id)?93:76)*(sizes[u.id]||1)},
  draw(ctx,u,time=0){
  c=ctx;c.save();c.lineJoin='round';c.lineCap='round';const size=sizes[u.id]||1,dead=u.hpNow<=0;
- const age=dead?Math.max(0,time-(u.deadAt??time)):0;
- if(dead&&age>1.8){c.restore();return}
- const facing=u.facing??(u.team==='enemy'?-1:1),moving=(u.motion||0)>0;
- const gait=(u.walk||0)*10,attack=Math.sin(Math.min(1,(u.flash||0)/.23)*Math.PI);
+ const age=dead?Math.max(0,time-(u.deadVisualAt??u.deadAt??time)):0;
+ const facing=u.facing??(u.team==='enemy'?-1:1),moving=!dead&&(u.motion||0)>0;
+ const gait=dead?0:(u.walk||0)*10,attack=dead?0:Math.sin(Math.min(1,(u.flash||0)/.23)*Math.PI);
  // Three translucent ellipses make a soft contact shadow without canvas shadowBlur.
- c.globalAlpha=dead?Math.max(0,.55-age*.3):1;
+ c.globalAlpha=dead?.65:1;
  const mount=['rider','p_horse','c_horsebow','c_lancer'].includes(u.id),wide=mount||u.id.startsWith('d_');
  oval(0,2,(wide?27:15)*size,6*size,'#142b2518');oval(0,2,(wide?22:12)*size,4*size,'#142b2528');oval(0,2,(wide?17:8)*size,2.5*size,'#142b252c');
  if(mount&&moving&&!dead){for(let i=0;i<2;i++)oval(-facing*(18+i*7),3+i,4+i*2,2,'#dbc18b35')}
  c.scale(facing*size,size);
- if(dead){c.globalAlpha=Math.max(0,1-age/1.8);c.rotate(-Math.min(1,age/.35)*1.45);c.scale(1,1-Math.min(.18,age*.15))}
- const idle=Math.sin(time*2.7+(u.idNum||u.x*3||0))*.55;
- c.translate((u.hurt||0)>0?-2:0,-(moving?Math.abs(Math.sin(gait))*(u.big?.7:1.2):idle));
+ if(dead){const fall=Math.min(1,age/.35);c.globalAlpha=.88;c.rotate(-fall*1.5);c.scale(1,1-fall*.18)}
+ const idle=dead?0:Math.sin(time*2.7+(u.idNum||u.x*3||0))*.55;
+ c.translate(!dead&&(u.hurt||0)>0?-2:0,-(moving?Math.abs(Math.sin(gait))*(u.big?.7:1.2):idle));
  const lean=u.id==='z_runner'?.2:u.id==='z_shambler'?-.08:attack*.045;c.transform(1,0,-lean,1,0,0);
  if(u.id.startsWith('l_'))reptile(u,gait,attack);else if(u.id.startsWith('z_'))zombie(u,gait,attack);else if(u.id.startsWith('d_'))dinosaur(u,gait,attack);else human(u,gait,attack);
  if((u.hurt||0)>0&&!dead){c.globalAlpha=Math.min(.8,u.hurt*4);line([[-13,-38],[-18,-45]],'#fff4c9',2);line([[14,-31],[20,-34]],'#fff4c9',2)}
