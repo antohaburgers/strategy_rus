@@ -1,8 +1,8 @@
 /* Network first: the permanent Home Screen URL loads current code whenever online.
  * Bump RELEASE with the HTML/version.json on each release; do not interrupt battles. */
 'use strict';
-const RELEASE='2026.11.10-music1',PREFIX='rus-game-',CACHE=PREFIX+RELEASE;
-const CORE=['./','./index.html','./style.css','./game-data.js','./unit-renderer.js','./game.js','./pwa.js','./battle-audio.js','./background-music.js','./audio/Russ_music.mp3','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/icon-maskable.png','./icons/apple-touch-icon.png'];
+const RELEASE='2026.11.10-music-root2',PREFIX='rus-game-',CACHE=PREFIX+RELEASE;
+const CORE=['./','./index.html','./style.css','./game-data.js','./unit-renderer.js','./game.js','./pwa.js','./battle-audio.js','./background-music.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/icon-maskable.png','./icons/apple-touch-icon.png'];
 const SOUNDS=[...Array.from({length:10},(_,i)=>`./audio/sword-${String(i+1).padStart(2,'0')}.mp3`),...Array.from({length:4},(_,i)=>`./audio/cry-${String(i+1).padStart(2,'0')}.mp3`),'./audio/horse-neigh.mp3'];
 CORE.push(...SOUNDS);
 self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.open(CACHE);await c.addAll(CORE.map(p=>new Request(new URL(p,self.registration.scope),{cache:'reload'})));
@@ -14,14 +14,16 @@ self.addEventListener('activate',e=>e.waitUntil((async()=>{for(const key of awai
 self.addEventListener('fetch',e=>{
  const url=new URL(e.request.url),scope=new URL(self.registration.scope);
  if(e.request.method!=='GET'||url.origin!==scope.origin||!url.pathname.startsWith(scope.pathname))return;
+ const relative='./'+decodeURIComponent(url.pathname.slice(scope.pathname.length));
+ const isMusic=/^\.\/Russ_music\.(?:mp3|мп3)$/i.test(relative);
  // Safari requests byte ranges when streaming and replaying HTML audio.
- if(url.pathname.endsWith('/audio/Russ_music.mp3')&&e.request.headers.has('range')){
+ if(isMusic&&e.request.headers.has('range')){
   e.respondWith((async()=>{
    const cache=await caches.open(CACHE),key=new URL(url.pathname,scope.origin).href;
    let response=await cache.match(key);
    if(!response){response=await fetch(new Request(key,{cache:'no-store'}));if(!response.ok)return response;await cache.put(key,response.clone())}
    const bytes=await response.arrayBuffer(),size=bytes.byteLength;
-   const match=/^bytes=(\\d*)-(\\d*)$/.exec(e.request.headers.get('range'));
+   const match=/^bytes=(\d*)-(\d*)$/.exec(e.request.headers.get('range'));
    if(!match||(!match[1]&&!match[2]))return new Response(bytes,{headers:{'Content-Type':'audio/mpeg','Content-Length':String(size),'Accept-Ranges':'bytes'}});
    const start=match[1]?Number(match[1]):Math.max(0,size-Number(match[2]));
    const end=match[1]?(match[2]?Math.min(Number(match[2]),size-1):size-1):size-1;
@@ -30,8 +32,7 @@ self.addEventListener('fetch',e=>{
   })());return;
  }
  if(url.pathname.endsWith('/version.json')){e.respondWith(fetch(new Request(e.request,{cache:'no-store'})));return}
- const relative='./'+url.pathname.slice(scope.pathname.length);
- if(e.request.mode!=='navigate'&&!CORE.includes(relative))return;
+ if(e.request.mode!=='navigate'&&!CORE.includes(relative)&&!isMusic)return;
  e.respondWith((async()=>{
   const cache=await caches.open(CACHE),key=e.request.mode==='navigate'?new URL('index.html',scope).href:new URL(url.pathname,scope.origin).href;
   try{const response=await fetch(new Request(e.request,{cache:'no-store'}));if(!response.ok)throw new Error('HTTP '+response.status);await cache.put(key,response.clone());return response}

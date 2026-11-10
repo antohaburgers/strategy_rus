@@ -1,7 +1,15 @@
 /* User supplied soundtrack, continuous across menus and battles. */
 (() => {
 'use strict';
-const track=new Audio('./audio/Russ_music.mp3');
+// The soundtrack is uploaded to the repository root; accept Latin/Cyrillic extensions.
+const sources=['mp3','mP3','Mp3','MP3','мп3','мП3','Мп3','МП3'].map(ext=>'./Russ_music.'+ext);
+let sourceIndex=0;
+const track=new Audio(sources[sourceIndex]);
+track.addEventListener('error',()=>{
+ if(sourceIndex+1>=sources.length)return;
+ track.src=sources[++sourceIndex];
+ if(!muted&&!document.hidden)play();
+});
 track.loop=true;
 track.preload='auto';
 track.volume=.35;
