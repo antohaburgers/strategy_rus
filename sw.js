@@ -1,7 +1,7 @@
 /* Network first: the permanent Home Screen URL loads current code whenever online.
  * Bump RELEASE with the HTML/version.json on each release; do not interrupt battles. */
 'use strict';
-const RELEASE='2026.11.10-pwa1',PREFIX='rus-game-',CACHE=PREFIX+RELEASE;
+const RELEASE='2026.11.10-pwa2',PREFIX='rus-game-',CACHE=PREFIX+RELEASE;
 const CORE=['./','./index.html','./style.css','./game-data.js','./unit-renderer.js','./game.js','./pwa.js','./manifest.webmanifest','./icons/icon-192.png','./icons/icon-512.png','./icons/icon-maskable.png','./icons/apple-touch-icon.png'];
 self.addEventListener('install',e=>e.waitUntil((async()=>{const c=await caches.open(CACHE);await c.addAll(CORE.map(p=>new Request(new URL(p,self.registration.scope),{cache:'reload'})));
  // The first install can activate immediately; updates wait for a safe point in the app.

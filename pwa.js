@@ -10,7 +10,7 @@ function applyWhenSafe(){
  if(waiting){waiting.postMessage({type:'ACTIVATE_UPDATE'});waiting=null;return}
  if(newVersion||reloadPending)reload();
 }
-function offerUpdate(){update.classList.remove('hidden');applyWhenSafe()}
+function offerUpdate(){if(busy())update.classList.remove('hidden');applyWhenSafe()}
 update.addEventListener('click',()=>{if(busy()){update.textContent='Обновится после боя / сброса армии';return}applyWhenSafe()});
 window.addEventListener('rus:state',applyWhenSafe);
 async function checkVersion(){
@@ -19,10 +19,10 @@ async function checkVersion(){
 }
 if('serviceWorker' in navigator){
  let controlled=!!navigator.serviceWorker.controller;
- navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!controlled){controlled=true;return}reloadPending=true;offerUpdate()});
+ navigator.serviceWorker.addEventListener('controllerchange',()=>{if(!controlled){controlled=true;waiting=null;if(!newVersion)update.classList.add('hidden');else applyWhenSafe();return}reloadPending=true;offerUpdate()});
  navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'}).then(r=>{
   registration=r;
-  const found=()=>{if(r.waiting){waiting=r.waiting;offerUpdate()}};found();
+  const found=()=>{if(r.waiting&&navigator.serviceWorker.controller){waiting=r.waiting;offerUpdate()}};found();
   r.addEventListener('updatefound',()=>{const worker=r.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed')found()})});
   checkVersion();
  }).catch(()=>{});
