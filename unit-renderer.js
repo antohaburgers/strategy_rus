@@ -13,6 +13,12 @@ function spear(x,y,angle=0,tassel=false){c.save();c.translate(x,y);c.rotate(angl
 function sword(x,y,a,heavy=false){c.save();c.translate(x,y);c.rotate(a);line([[0,4],[0,-6]],'#5e372a',3);line([[-5,-5],[5,-5]],gold,2.5);metal([[-2.5,-7],[-2.5,-28],[0,-34],[3,-28],[2,-7]]);if(heavy)path([[-2,-21],[-12,-25],[-13,-36],[-3,-31]],steel);c.restore()}
 function bow(x,y,draw=0){c.save();c.translate(x,y);c.beginPath();c.moveTo(0,-17);c.bezierCurveTo(19,-9,19,9,0,18);c.strokeStyle=ink;c.lineWidth=4;c.stroke();c.strokeStyle='#d7a96a';c.lineWidth=2;c.stroke();line([[0,-17],[-7*draw,0],[0,18]],'#f0ddb0',.9);line([[-10-7*draw,0],[20,0]],'#e5d1a4',1.2);path([[22,0],[16,-2],[16,2]],steel,null);c.restore()}
 function shield(x,y,col,heavy=false,steppe=false){c.save();c.translate(x,y);const p=heavy?[[-11,-17],[9,-17],[12,-5],[5,14],[-3,19],[-13,5]]:[[-10,-12],[0,-16],[10,-10],[9,8],[0,16],[-10,6]];if(steppe)oval(0,0,12,13,col,ink,1.6);else path(p,col);if(!steppe){line([[-7,-10],[-6,5],[-1,12]],'#ffffff45',1.3);line([[3,-12],[4,7]],'#1b302a55',1)}line([[-8,-1],[8,-1]],gold,2);line([[0,-11],[0,12]],gold,2);oval(0,-1,3.4,3.4,steel,ink);oval(-.8,-2,1.1,1.1,light);c.restore()}
+// Fictional branching rune: deliberately drawn as geometry, independent of fonts.
+function rune(x,y,size=1,col='#a62d36'){
+ c.save();c.translate(x,y);c.scale(size,size);
+ line([[0,-7],[0,7]],col,1.8);line([[-5,-5],[0,-1],[5,-5]],col,1.8);line([[-4,5],[0,2],[4,5]],col,1.6);c.restore();
+}
+function runicShield(x,y,heavy=false){shield(x,y,'#eee7d2',heavy,false);c.save();c.translate(x,y);line([[-8,-10],[-8,5]],'#ad3540',2);line([[7,-10],[7,4]],'#ad3540',2);rune(0,-1,.9);c.restore()}
 function armor(x,y,w,h,col,lamellar=false){path([[x-w,y],[x+w,y+1],[x+w+2,y+h],[x-w-2,y+h]],col);path([[x,y+2],[x+w,y+1],[x+w+2,y+h],[x,y+h]],'#10232728',null);for(let row=0;row<3;row++){const yy=y+5+row*5;line([[x-w+2,yy],[x+w-1,yy]],'#182b324f',1);for(let i=-1;i<=1;i++)if(lamellar)line([[x+i*4,yy-3],[x+i*4,yy-1]],gold,.8);else oval(x+(row%2?1:0)+i*4,yy-2,.8,.7,'#dce3d080')}}
 function head(x,y,kind,skin,beard=false){
  oval(x,y,7,8,skin,ink,1.2);path([[x+4,y-2],[x+10,y+1],[x+6,y+3]],skin,ink,.8);
@@ -37,10 +43,10 @@ function horse(gait,kind){
  for(const [x,phase] of [[-12,Math.PI],[15,0]]){const s=Math.sin(gait+phase)*5;limb([[x,-20],[x+3-s,-9],[x+s,1]],coat,4);line([[x+s-2,2],[x+s+3,2]],ink,3)}
 }
 function human(u,gait,attack){
- const id=u.id,p=id.startsWith('p_'),k=id.startsWith('c_'),china=id.startsWith('h_'),hero=id==='bogatyr';
+ const id=u.id,p=id.startsWith('p_'),k=id.startsWith('c_'),china=id.startsWith('h_'),hero=id==='bogatyr',rus=!p&&!k&&!china;
  const mounted=['rider','p_horse','c_horsebow','c_lancer'].includes(id),heavy=['shield','c_guard','h_guard','bogatyr'].includes(id);
  const archer=id==='archer'||id==='c_horsebow',cross=id==='h_crossbow',spearman=['spear','p_spear','c_lancer','h_spear'].includes(id);
- const cloth=p?'#ad7547':k?'#36747a':china?'#b64236':hero?'#a34d37':id==='archer'?'#617d50':id==='militia'?'#b6a47a':'#86604b';
+ const cloth=p?'#ad7547':k?'#36747a':china?'#b64236':'#eee7d5';
  if(mounted){horse(gait,p?'p':k?'c':'r');c.save();c.translate(-4,-23)}else c.save();
  const stride=mounted?0:Math.sin(gait)*3;
  if(hero||k||id==='rider')path([[-8,-39],[-15,-28],[-17,-9],[-4,-15],[7,-12],[7,-38]],k?'#23505e':'#a43d32');
@@ -52,16 +58,20 @@ function human(u,gait,attack){
  else {line([[-5,-33],[-4,-18]],'#ffffff30',1.2);line([[2,-35],[4,-17]],'#382b293f',1.2)}
  if(p){path([[-9,-37],[-12,-30],[-7,-32],[-3,-28],[0,-33],[6,-30],[10,-34],[7,-38]],'#d8c09b');}
  line([[-9,-18],[9,-18]],'#4e3328',3);path([[-1,-20],[3,-20],[3,-16],[-1,-16]],gold,ink,.6);
+ if(rus){line([[-7,-13],[7,-13]],'#b43840',3);line([[-5,-35],[-4,-22]],'#b43840',2);rune(3,-27,.4);}
  if(heavy){oval(-9,-34,5,4,steel,ink);oval(8,-34,5,4,steel,ink)}
  const skin='#d7ad84';head(0,-44,china?'china':p?'fur':k?'hero':hero?'hero':id==='militia'?'cloth':archer?'hood':'rus',skin,!china&&!archer);
+ if(rus){line([[-7,-48],[6,-48]],'#ab323d',2);if(archer)path([[-7,-41],[-10,-49],[-5,-56],[4,-55],[9,-48],[3,-48],[-3,-50],[-4,-41]],'#eee8d5');}
  // Weapon arm is animated independently from the torso.
  const handX=12+attack*7,handY=-27-attack*5;
- limb([[7,-32],[10,-24],[handX,handY]],cloth,4);oval(handX,handY,2.7,2.7,skin,ink,.8);
+ limb([[7,-32],[10,-24],[handX,handY]],cloth,4);if(rus)line([[10,-26],[13,-28]],'#b63840',2.5);oval(handX,handY,2.7,2.7,skin,ink,.8);
  if(spearman)spear(handX,handY,id==='p_spear'?.55-attack*.9:.35+attack*.65,china||k);
  else if(archer){limb([[-5,-32],[4-attack*5,-29],[13-attack*7,-29]],cloth,3);bow(15,-29,1-attack)}
  else if(cross){line([[3,-25],[22,-31]],'#a07448',4);line([[17,-41],[22,-31],[26,-20]],steel,2.6);line([[17,-41],[17-attack*4,-29],[26,-20]],'#eee1bb',.8);line([[13,-29],[29,-34]],'#d9c8a5',1.2)}
  else sword(handX,handY,.35+attack*1.5,hero);
- if(heavy)shield(-11,-26,china?'#963f35':k?'#30747a':hero?'#9c4636':'#3d6576',!k,k);
+ if(heavy&&rus)runicShield(-11,-26,true);
+ else if(heavy)shield(-11,-26,china?'#963f35':k?'#30747a':hero?'#9c4636':'#3d6576',!k,k);
+ else if(mounted&&rus)runicShield(-10,-29);
  else if(mounted&&!archer)shield(-10,-29,p?'#a77a4b':'#904d37',false,true);
  else if(!archer&&!cross)limb([[-8,-31],[-12,-22],[-8,-19]],cloth,3.6);
  c.restore();
@@ -106,6 +116,7 @@ function dinosaur(u,gait,attack){
 }
 const sizes={bogatyr:1.25,z_brute:1.45,d_rex:1.35,d_trike:1.13};
 window.RUS_ART={
+ rune(ctx,x,y,size,col){c=ctx;rune(x,y,size,col)},
  height(u){return (['rider','p_horse','c_horsebow','c_lancer'].includes(u.id)?93:76)*(sizes[u.id]||1)},
  draw(ctx,u,time=0){
  c=ctx;c.save();c.lineJoin='round';c.lineCap='round';const size=sizes[u.id]||1,dead=u.hpNow<=0;

@@ -55,7 +55,7 @@
     ['Китайское царство','Императорский тракт','road',210,'rock:5,2 rock:5,7 tree:6,1 tree:6,8','h_spear:6 h_crossbow:5 h_guard:3']
   ];
   function obstaclesFrom(s){return s.split(/\s+/).filter(Boolean).map(item=>{const [type,xy]=item.split(':');const [x,y]=xy.split(',').map(Number);return {type,x,y}})}
-  function spawnFrom(s){const queue=[];for(const item of s.split(/\s+/)){const [id,n]=item.split(':');for(let i=0;i<+n;i++)queue.push(id)}const rows=[4,5,3,6,2,7,1,8,0,9];return queue.map((id,i)=>({id,x:8+Math.floor(i/10),y:rows[i%10]}))}
-  const levels=levelsRaw.map((r,i)=>({id:i+1,chapter:Math.floor(i/4)+1,faction:r[0],title:r[1],biome:r[2],budget:r[3],obstacles:obstaclesFrom(r[4]),enemies:spawnFrom(r[5])}));
-  window.RUS_DATA={W:12,H:10,heroes,enemies,levels};
+  function spawnFrom(s){const queue=[];for(const item of s.split(/\s+/)){const [id,n]=item.split(':');for(let i=0;i<+n;i++)queue.push(id)}const rows=[4,5,3,6,2,7,1,8,0,9];return queue.map((id,i)=>({id,x:14+Math.floor(i/10),y:rows[i%10]+2}))}
+  const levels=levelsRaw.map((r,i)=>({id:i+1,chapter:Math.floor(i/4)+1,faction:r[0],title:r[1],biome:r[2],budget:r[3],obstacles:obstaclesFrom(r[4]).map(o=>({...o,x:o.x+3,y:o.y+2})),enemies:spawnFrom(r[5])}));
+  window.RUS_DATA={W:18,H:12,DEPLOY:5,heroes,enemies,levels};
 })();

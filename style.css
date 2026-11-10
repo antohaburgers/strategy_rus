@@ -44,3 +44,17 @@ select{max-width:190px;min-width:120px;background:#314b38;border:1px solid #9b9c
  .mapTitle{font-size:11px}
 }
 @media(max-height:580px){.shoplabel{margin:5px 0 4px}.unitCard{padding:5px 8px}.controls{padding-top:5px;padding-bottom:5px}.mapTitle{padding:4px 7px}.tip{padding:4px 7px}}
+/* The battlefield is the entire viewport; HUD floats above the terrain. */
+#app{position:relative;isolation:isolate}
+.field{position:absolute;inset:0;z-index:0;min-height:0}
+.top,.summary,.controls{position:relative;z-index:2;flex-shrink:0}
+.top{background:#203329e8;backdrop-filter:blur(8px)}
+.summary{background:#203329c9;padding-top:5px;padding-bottom:5px}
+.controls{margin-top:auto;background:#203329ed;backdrop-filter:blur(8px)}
+.mapTitle{top:93px;font-size:10px;padding:5px 8px;background:#2033299c;pointer-events:none}
+.tip{bottom:163px;font-size:10px;max-width:480px;padding:5px 8px}
+.camera{bottom:166px;gap:4px}.camera button{width:32px;height:32px}
+.shoplabel{margin:5px 0}.unitCard{padding:6px 9px;min-width:90px}
+.unitCard.selected{border-color:#e9c9b4;background:#77413e}
+@media(max-width:540px){.brand small{display:none}.top{min-height:43px}.summary{padding:5px 10px}.mapTitle{top:76px}.tip{bottom:151px;right:48px;font-size:9px}.camera{bottom:151px;right:7px}.unitCard{min-width:82px}.controls{padding-top:6px}.shoplabel{font-size:10px}}
+@media(max-height:500px){.brand small,.shoplabel,.unitHint,.tip{display:none}.top{padding:3px 10px;min-height:34px}.summary{padding:3px 10px}.controls{display:flex;gap:8px;align-items:center;padding:4px 8px}.actions{order:2;margin-left:auto}.shop{flex:1}.unitCard{min-width:77px;padding:5px 7px}.actions button{min-height:35px;padding:5px 9px}.mapTitle{top:62px}.camera{bottom:66px;flex-direction:row}}

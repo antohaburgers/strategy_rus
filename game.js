@@ -1,7 +1,8 @@
 /* Русы против всех — Canvas auto-battler prototype 0.1 */
 (() => {
 'use strict';
-const D=window.RUS_DATA, W=D.W, H=D.H, TW=72, TH=40;
+const D=window.RUS_DATA, W=D.W, H=D.H;
+let TW=72,TH=40,artScale=1;
 const $=id=>document.getElementById(id);
 const c=$('battle'), g=c.getContext('2d'), field=$('field');
 const blockedKinds=new Set(['rock','tree','water']);
@@ -19,8 +20,8 @@ let state={index:0,mode:'prep',selected:'militia',placed:[],units:[],shots:[],ob
   budget:90,time:0,level:null,zoom:1,panX:0,panY:0,last:0,accum:0,hint:'',hover:null};
 let screenW=360,screenH=400,dpr=1,idCounter=1;
 const key=(x,y)=>x+','+y;
-const iso=(x,y)=>({x:(x-y)*TW/2,y:(x+y)*TH/2});
-const mapMid=iso(W/2,H/2);
+const iso=(x,y)=>({x:x*TW,y:y*TH});
+let mapMid={x:0,y:0};
 const at=(x,y)=>state.obstacles.get(key(x,y));
 const inMap=(x,y)=>x>=0&&y>=0&&x<W&&y<H;
 const solid=(x,y)=>!inMap(x,y)||blockedKinds.has(at(x,y));
@@ -29,13 +30,16 @@ const distance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 function hash(x,y,s=0){let n=Math.sin((x+1)*127.1+(y+2)*311.7+(s+state.index)*73.3)*43758.5453;return n-Math.floor(n)}
 function remaining(){return state.budget-state.placed.reduce((v,p)=>v+unitDefs.get(p.id).cost,0)}
 function notify(t){state.hint=t;$('tip').textContent=t}
-function fitZoom(){return clamp(Math.min((screenW-22)/((W+H)*TW/2+25),(screenH-30)/((W+H)*TH/2+42)),.30,1.25)}
-function resetCamera(){state.zoom=fitZoom();state.panX=0;state.panY=0}
+function fitZoom(){return 1}
+function resetCamera(){state.zoom=1;state.panX=0;state.panY=0}
 function resize(){
  const r=field.getBoundingClientRect();screenW=Math.max(1,r.width);screenH=Math.max(1,r.height);
- dpr=Math.min(2,window.devicePixelRatio||1);
- c.width=Math.round(screenW*dpr);c.height=Math.round(screenH*dpr);
- if(!state.zoom||!state.last)resetCamera();
+ const hud=document.querySelector('.summary').getBoundingClientRect(),bottom=document.querySelector('.controls').getBoundingClientRect();
+ const top= Math.max(80,hud.bottom+45), foot=bottom.height+18;
+ TW=screenW/W;TH=Math.max(12,(screenH-top-foot)/H);
+ artScale=clamp(Math.min(TW/58,TH/43+.15),.55,1.08);mapMid={x:screenW/2,y:screenH/2-top};
+ dpr=Math.min(2,window.devicePixelRatio||1);c.width=Math.round(screenW*dpr);c.height=Math.round(screenH*dpr);
+ resetCamera();
 }
 function makeSoldier(def,team,x,y){
  return {...def,team,x,y,hpNow:def.hp,idNum:idCounter++,wait:0,acquire:0,
@@ -67,7 +71,7 @@ function setupShop(){
   const role=document.createElement('span');role.className='unitHint';role.textContent=
     ({militia:'Дешёвый',shield:'Держит строй',spear:'Против конницы',archer:'Дальний бой',rider:'Обходит фланг',bogatyr:'Герой'})[u.id];
   button.append(n,price,role);
-  button.addEventListener('click',()=>{state.selected=u.id;notify('Выбран: '+u.name+'. Коснись пустой клетки в синей зоне.');updateControls()});
+  button.addEventListener('click',()=>{state.selected=u.id;notify('Выбран: '+u.name+'. Коснись пустой клетки в бело-красной зоне.');updateControls()});
   shop.append(button);
  }
 }
@@ -90,7 +94,8 @@ function placeAt(x,y){
  if(!inMap(x,y)){notify('За пределами поля.');return}
  const existing=state.placed.findIndex(u=>Math.floor(u.x)===x&&Math.floor(u.y)===y);
  if(existing>=0){const old=state.placed.splice(existing,1)[0];notify(unitDefs.get(old.id).name+' вернулся в запас.');updateControls();return}
- if(x>=4){notify('Тут нельзя разместить русов: нужна синяя область слева.');return}
+ if(y<2){notify('Верхний край оставлен для знамён. Ставь дружину ниже.');return}
+ if(x>=D.DEPLOY){notify('Тут нельзя разместить русов: нужна бело-красная область слева.');return}
  if(solid(x,y)){notify('Здесь препятствие — клетка занята.');return}
  const def=unitDefs.get(state.selected);
  if(remaining()<def.cost){notify('Не хватает очков на '+def.name+'.');return}
@@ -234,7 +239,7 @@ function screenPoint(e){const rect=c.getBoundingClientRect();return{x:e.clientX-
 function cellAt(p){
  const px=(p.x-screenW/2-state.panX)/state.zoom+mapMid.x,
        py=(p.y-screenH/2-state.panY)/state.zoom+mapMid.y;
- return{x:Math.floor(px/TW+py/TH),y:Math.floor(py/TH-px/TW)};
+ return{x:Math.floor(px/TW),y:Math.floor(py/TH)};
 }
 function poly(pts,fill,stroke=null,width=1){
  g.beginPath();g.moveTo(pts[0][0],pts[0][1]);
@@ -244,7 +249,7 @@ function poly(pts,fill,stroke=null,width=1){
 function oval(x,y,rx,ry,col){g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fillStyle=col;g.fill()}
 function segment(x1,y1,x2,y2,col,w=2){g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.lineCap='round';g.lineWidth=w;g.strokeStyle=col;g.stroke()}
 function drawDiamond(p,fill,stroke){
- poly([[p.x,p.y-TH/2],[p.x+TW/2,p.y],[p.x,p.y+TH/2],[p.x-TW/2,p.y]],fill,stroke,.75)
+ poly([[p.x-TW/2,p.y-TH/2],[p.x+TW/2,p.y-TH/2],[p.x+TW/2,p.y+TH/2],[p.x-TW/2,p.y+TH/2]],fill,stroke,.55)
 }
 function tile(x,y){
  const p=iso(x+.5,y+.5),biome=biomes[state.level.biome]||biomes.steppe;
@@ -255,8 +260,8 @@ function tile(x,y){
  if(o==='mud')fill='#666b4f';
  if(o==='road')fill='#ad9470';
  drawDiamond(p,fill,'#1e41221c');
- if(state.mode==='prep'&&x<4)drawDiamond(p,'#62adf421');
- if(state.mode==='prep'&&x>=8)drawDiamond(p,'#e86e5d12');
+ if(state.mode==='prep'&&x<D.DEPLOY&&y>=2)drawDiamond(p,'#fff2de24');
+ if(state.mode==='prep'&&x>=14)drawDiamond(p,'#e86e5d12');
  if(o==='water'){
   for(let i=0;i<2;i++){const xx=p.x-17+hash(x,y,i)*29,yy=p.y-3+i*5;segment(xx,yy,xx+12,yy-2,'#c0e5dc7a',1.1)}
  }else{
@@ -268,7 +273,7 @@ function tile(x,y){
 }
 function objectDraw(o){
  const p=iso(o.x+.5,o.y+.5);
- g.save();g.translate(p.x,p.y);
+ g.save();g.translate(p.x,p.y);g.scale(artScale,artScale);
  if(o.type==='tree'){
   oval(4,5,19,7,'#15301c50');
   segment(0,1,0,-36,'#6c5037',7);
@@ -289,7 +294,7 @@ function objectDraw(o){
 }
 function unitDraw(u){
  const p=iso(u.x,u.y),dead=u.hpNow<=0;
- g.save();g.translate(p.x,p.y);
+ g.save();g.translate(p.x,p.y);g.scale(artScale,artScale);
  window.RUS_ART.draw(g,u,state.mode==='prep'?state.last/1000:state.time);
  if(!dead){
   const y=-window.RUS_ART.height(u),w=u.big||u.id==='bogatyr'?34:27;
@@ -298,26 +303,42 @@ function unitDraw(u){
  }
  g.restore();
 }
+function flagDraw(enemy){
+ const p=iso(enemy?W-1.7:1.7,1.7),t=state.last/1000,wave=Math.sin(t*3+(enemy?2:0))*3;
+ g.save();g.translate(p.x,p.y);g.scale(Math.max(.65,artScale),Math.max(.65,artScale));
+ oval(0,1,18,4,'#203b3540');segment(0,0,0,-90,'#614c36',4);segment(-1,-89,-1,0,'#e0c191',1);poly([[0,-99],[-4,-89],[4,-89]],'#ead49a');
+ const colors=enemy?['#9f5a36','#2f6876','#365d44','#43494e','#836044','#a33336'][state.level.chapter-1]:'#f5edd9';
+ poly([[2,-86],[38,-84+wave],[42,-57+wave],[20,-60],[2,-58]],colors,'#382f2d',1.2);
+ if(!enemy){segment(5,-82,35,-80+wave,'#b33640',3);segment(5,-62,36,-61+wave,'#b33640',3);window.RUS_ART.rune(g,20,-72,.85,'#b33640')}
+ else {g.strokeStyle='#e6d3a0';g.lineWidth=2;g.beginPath();
+ const chapter=state.level.chapter;
+ if(chapter<=2){g.arc(20,-72,7,-1,4.5);g.stroke();if(chapter===2)segment(24,-77,24,-66,'#e6d3a0',2)}
+ else if(chapter===3){poly([[11,-69],[18,-78],[31,-72],[24,-65]],'#d2d78e');oval(25,-73,1.5,1.5,'#304736')}
+ else if(chapter===4){oval(21,-73,8,7,'#d9d0af');oval(18,-74,2,2,'#43494e');oval(24,-74,2,2,'#43494e');segment(18,-65,24,-65,'#d9d0af',2)}
+ else if(chapter===5){poly([[13,-66],[16,-78],[22,-73],[26,-79],[29,-66]],'#eddbac')}
+ else {segment(13,-78,29,-78,'#e6d3a0',2);segment(21,-81,21,-64,'#e6d3a0',2);segment(14,-71,28,-71,'#e6d3a0',2)} }
+ g.restore();
+}
 function render(){
  if(!c.width||!c.height)return;
  g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,screenW,screenH);
- g.fillStyle='#203628';g.fillRect(0,0,screenW,screenH);
+ g.fillStyle=(biomes[state.level.biome]||biomes.steppe)[0];g.fillRect(0,0,screenW,screenH);
  g.save();g.translate(screenW/2+state.panX,screenH/2+state.panY);
  g.scale(state.zoom,state.zoom);g.translate(-mapMid.x,-mapMid.y);
  for(let sum=0;sum<=W+H-2;sum++)for(let y=Math.max(0,sum-W+1);y<=Math.min(H-1,sum);y++)tile(sum-y,y);
  if(state.hover&&state.mode==='prep'&&inMap(state.hover.x,state.hover.y)){
   const p=iso(state.hover.x+.5,state.hover.y+.5);
-  const ok=state.hover.x<4&&!solid(state.hover.x,state.hover.y);
+  const ok=state.hover.x<D.DEPLOY&&state.hover.y>=2&&!solid(state.hover.x,state.hover.y);
   drawDiamond(p,ok?'#bde6a075':'#e879647d',ok?'#e0f2ce':'#f7ae9b');
  }
- const drawables=[];
+ const drawables=[{sort:TH*1.7,kind:'flag',value:{enemy:false}},{sort:TH*1.7,kind:'flag',value:{enemy:true}}];
  state.level.obstacles.forEach(o=>{if(o.type!=='water')drawables.push({sort:iso(o.x+.5,o.y+.5).y,kind:'obstacle',value:o})});
  if(state.mode==='prep'){
   state.placed.forEach(p=>drawables.push({sort:iso(p.x,p.y).y,kind:'unit',value:{...unitDefs.get(p.id),team:'rus',x:p.x,y:p.y,hpNow:unitDefs.get(p.id).hp,walk:0,flash:0}}));
   state.level.enemies.forEach(p=>drawables.push({sort:iso(p.x+.5,p.y+.5).y,kind:'unit',value:{...unitDefs.get(p.id),team:'enemy',x:p.x+.5,y:p.y+.5,hpNow:unitDefs.get(p.id).hp,walk:0,flash:0}}));
  }else state.units.forEach(u=>drawables.push({sort:iso(u.x,u.y).y,kind:'unit',value:u}));
  drawables.sort((a,b)=>a.sort-b.sort);
- for(const d of drawables)if(d.kind==='unit')unitDraw(d.value);else objectDraw(d.value);
+ for(const d of drawables)if(d.kind==='unit')unitDraw(d.value);else if(d.kind==='flag')flagDraw(d.value.enemy);else objectDraw(d.value);
  for(const p of state.shots){const a=iso(p.x,p.y),b=iso(p.tx,p.ty),t=clamp(p.time/p.duration,0,1);
   const x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t-34-Math.sin(t*Math.PI)*12;
   const dx=b.x-a.x,dy=b.y-a.y,angle=Math.atan2(dy,dx);
@@ -361,6 +382,7 @@ c.addEventListener('contextmenu',e=>e.preventDefault());
 c.addEventListener('wheel',e=>{e.preventDefault();state.zoom=clamp(state.zoom*(e.deltaY>0?.9:1.1),.27,2.8)},{passive:false});
 $('plus').addEventListener('click',()=>state.zoom=clamp(state.zoom*1.2,.27,2.8));
 $('minus').addEventListener('click',()=>state.zoom=clamp(state.zoom/1.2,.27,2.8));
+$('home').addEventListener('click',resetCamera);
 $('clear').addEventListener('click',clearArmy);
 $('fight').addEventListener('click',startBattle);
 $('retry').addEventListener('click',()=>loadLevel(state.index));
