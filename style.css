@@ -1,0 +1,46 @@
+:root{color-scheme:dark;font:14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}
+html,body{height:100%;width:100%;margin:0;overflow:hidden;background:#18271f;color:#f8e8c8}
+button,select{font:inherit;touch-action:manipulation}
+button{cursor:pointer}
+#app{display:flex;flex-direction:column;height:100%;height:100dvh;min-height:0;overflow:hidden}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px max(13px,env(safe-area-inset-right)) 8px max(13px,env(safe-area-inset-left));background:#1f3025;border-bottom:1px solid #57624c}
+.brand strong{display:block;font-size:18px;letter-spacing:.5px;color:#ffe4a0}.brand span{color:#e9f0da}
+.brand small{display:block;font-size:10px;color:#bac8ae;margin-top:1px}
+.levelbox{display:flex;align-items:center;gap:8px;min-width:0}.levelbox label{font-size:11px;color:#d1d5ba}
+select{max-width:190px;min-width:120px;background:#314b38;border:1px solid #9b9c71;color:#fff1ce;padding:8px 4px;border-radius:8px;text-overflow:ellipsis}
+.summary{background:#293b30;border-bottom:1px solid #53684d;padding:7px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px}
+#budget{color:#ffe49f;font-weight:800;font-variant-numeric:tabular-nums}
+#chapter{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#battleTime{color:#c6dac8;white-space:nowrap}
+.field{flex:1;position:relative;min-height:120px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#365543 0%,#203a2d 75%,#18261c 100%)}
+#battle{height:100%;width:100%;display:block;touch-action:none}
+.mapTitle,.tip,.camera,.result{position:absolute;pointer-events:none}
+.mapTitle{top:10px;left:10px;background:#1f3026dc;border:1px solid #6d805c;border-radius:8px;padding:7px 9px;font-size:12px;font-weight:700}
+.tip{left:10px;bottom:9px;right:65px;max-width:620px;color:#f3e8d1;background:#17261cce;border-radius:8px;padding:7px 9px;font-size:11px;line-height:1.35}
+.camera{right:10px;bottom:10px;display:flex;flex-direction:column;gap:6px;pointer-events:auto}.camera button{height:35px;width:35px;border:1px solid #839575;color:#eee5c9;background:#203a2eeb;border-radius:8px;font-size:20px}
+.result{top:50%;left:50%;transform:translate(-50%,-50%);background:#17271ff2;border:2px solid #d4b86e;border-radius:14px;min-width:min(290px,85%);padding:20px 15px;text-align:center;display:flex;flex-direction:column;gap:9px;box-shadow:0 10px 50px #0009}
+.result strong{font-size:24px;color:#ffe2a0}.result span{font-size:12px;line-height:1.5}
+.hidden{display:none!important}
+.controls{background:#202f26;border-top:1px solid #586d4e;padding:8px max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
+.actions{display:flex;gap:6px;align-items:stretch}.actions button{padding:10px 12px;border-radius:9px;border:1px solid #819370;white-space:nowrap;min-height:42px}
+.actions .primary{background:#aa7135;color:#fff5df;border-color:#efba71;font-size:15px;font-weight:900;margin-left:auto;flex:1;max-width:190px}.actions .primary:disabled{opacity:.45}
+.actions .secondary{background:#324538;color:#f1e9d0}.actions button:hover{filter:brightness(1.14)}
+.shoplabel{display:flex;align-items:baseline;gap:8px;margin:10px 0 7px;font-size:11px;font-weight:800;letter-spacing:.6px;color:#f1d99c}.shoplabel small{font-size:10px;letter-spacing:0;font-weight:400;color:#aebeaa}
+.shop{display:flex;gap:7px;overflow-x:auto;padding-bottom:3px;scrollbar-width:thin;scrollbar-color:#6f8067 transparent}
+.unitCard{display:flex;flex-direction:column;min-width:91px;align-items:flex-start;padding:8px 10px;gap:3px;border-radius:10px;border:1px solid #708269;background:#304335;color:#f7e9c9;text-align:left}
+.unitCard.selected{border-color:#f2cf7f;background:#5e5a38;box-shadow:inset 0 0 0 1px #f2cf7f}
+.unitCard .unitName{font-size:12px;font-weight:750}.unitCard .unitCost{color:#f6d88e;font-size:12px}.unitCard .unitHint{font-size:10px;color:#c3ccba}
+.unitCard:disabled{opacity:.42}
+@media(max-width:540px){
+ .brand strong{font-size:14px}.brand small{font-size:9px}
+ .top{padding-top:6px;padding-bottom:6px}
+ .summary{font-size:11px}
+ .levelbox label{display:none}select{max-width:142px;font-size:11px;padding:7px 3px;min-width:106px}
+ .actions button{font-size:11px;padding:8px;min-height:39px}
+ .actions .primary{font-size:13px}
+ .shoplabel small{display:none}
+ .unitCard{min-width:90px}
+ .mapTitle{font-size:11px}
+}
+@media(max-height:580px){.shoplabel{margin:5px 0 4px}.unitCard{padding:5px 8px}.controls{padding-top:5px;padding-bottom:5px}.mapTitle{padding:4px 7px}.tip{padding:4px 7px}}
