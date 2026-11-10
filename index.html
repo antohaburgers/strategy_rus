@@ -1,52 +1,47 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-  <meta name="theme-color" content="#18271f">
-  <title>Русы против всех — изометрический автобой</title>
-  <link rel="stylesheet" href="./style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#192e28">
+<title>Русы против всех — битва дружин</title>
+<link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <div id="app">
-    <header class="top">
-      <div class="brand">
-        <strong>РУСЫ <span>ПРОТИВ ВСЕХ</span></strong>
-        <small>Дружина белого знамени</small>
-      </div>
-      <div class="levelbox">
-        <label for="level">Битва</label>
-        <select id="level" aria-label="Выбрать битву"></select>
-      </div>
-    </header>
-    <div class="summary">
-      <span id="chapter">Глава 1 — Печенеги</span>
-      <span id="budget">⚜ 90 / 90</span>
-      <span id="battleTime">Подготовка</span>
-    </div>
-    <main class="field" id="field">
-      <canvas id="battle" aria-label="Поле боя. Выберите бойца ниже, коснитесь клетки своей зоны."></canvas>
-      <div class="mapTitle" id="mapTitle">Степная застава</div>
-      <div class="tip" id="tip">Выбери воина внизу и коснись клетки слева. Повторный тап по бойцу — убрать.</div>
-      <div class="camera">
-        <button id="home" aria-label="Всё поле">⌖</button><button id="minus" aria-label="Отдалить карту">−</button><button id="plus" aria-label="Приблизить карту">+</button>
-      </div>
-      <div id="result" class="result hidden" role="status" aria-live="polite">
-        <strong id="resultTitle"></strong><span id="resultText"></span>
-      </div>
-    </main>
-    <footer class="controls">
-      <div class="actions">
-        <button id="clear" class="secondary">↻ Сброс армии</button>
-        <button id="retry" class="secondary hidden">Повторить</button>
-        <button id="next" class="secondary hidden">Следующая битва</button>
-        <button id="fight" class="primary">⚔ В БОЙ!</button>
-      </div>
-      <div class="shoplabel"><span>ТВОЯ ДРУЖИНА</span><small>Покупай и расставляй бойцов до начала схватки</small></div>
-      <div id="shop" class="shop" role="group" aria-label="Выбор русских воинов"></div>
-    </footer>
+<div id="app">
+ <aside class="infoPanel" aria-label="Сведения о битве">
+  <div class="brand">РУСЫ<span>ПРОТИВ ВСЕХ</span></div>
+  <div class="counter"><small>БИТВА</small><strong id="battleNumber">01 / 24</strong></div>
+  <div id="mapTitle" class="mapTitle">Степная застава</div>
+  <div class="budgetbox"><small>ЗАПАС ДРУЖИНЫ</small><strong id="budget">⚜ 90 / 90</strong></div>
+  <span id="chapter">Глава 1 — Печенеги</span>
+  <span id="battleTime">Подготовка</span>
+  <div class="sideRune" aria-hidden="true">ᛉ</div>
+ </aside>
+ <main class="field" id="field">
+  <canvas id="battle" aria-label="Поле боя. Выберите бойца внизу и коснитесь клетки слева."></canvas>
+  <div class="tip" id="tip"></div>
+  <div id="result" class="result hidden" role="status" aria-live="polite"><strong id="resultTitle"></strong><span id="resultText"></span></div>
+ </main>
+ <aside class="commandPanel" aria-label="Управление битвой">
+  <button id="menu" aria-expanded="false" aria-controls="menuPanel">☰ <span>Меню</span></button>
+  <div class="camera"><button id="minus" aria-label="Отдалить карту">−</button><button id="home" aria-label="Всё поле">⌖</button><button id="plus" aria-label="Приблизить карту">+</button></div>
+  <button id="fullscreen" class="secondary" aria-label="На весь экран">⛶ <span>На весь экран</span></button>
+  <div class="actions">
+   <button id="clear" class="secondary">↻ <span>Сброс армии</span></button>
+   <button id="retry" class="secondary hidden">Повторить</button>
+   <button id="next" class="secondary hidden">Дальше →</button>
+   <button id="fight" class="primary">⚔<span>В БОЙ!</span></button>
   </div>
-  <script src="./game-data.js"></script>
-  <script src="./unit-renderer.js"></script>
-  <script src="./game.js"></script>
+ </aside>
+ <footer class="controls"><div id="shop" class="shop" role="group" aria-label="Выбор русских воинов"></div></footer>
+ <section id="menuPanel" class="menuPanel hidden" aria-label="Меню игры">
+  <strong>ВЫБРАТЬ БИТВУ</strong><label for="level">Открытые сражения</label><select id="level" aria-label="Выбрать битву"></select>
+  <p>Выбери бойца снизу и коснись клетки в левой части поля. Повторное касание возвращает бойца в запас.</p>
+  <p>Два пальца — масштаб. Перетягивание — камера. «⌖» — всё поле.</p>
+  <button id="closeMenu">Вернуться к дружине</button>
+ </section>
+ <div class="rotatePrompt"><div aria-hidden="true">↻</div><strong>Поверни телефон</strong><span>Дружина ждёт в альбомном режиме</span></div>
+</div>
+<script src="./game-data.js"></script><script src="./unit-renderer.js"></script><script src="./game.js"></script>
 </body></html>

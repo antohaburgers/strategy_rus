@@ -2,7 +2,7 @@
 (() => {
 'use strict';
 const D=window.RUS_DATA, W=D.W, H=D.H;
-let TW=72,TH=40,artScale=1;
+let TW=72,TH=40,SKEW=18,artScale=1;
 const $=id=>document.getElementById(id);
 const c=$('battle'), g=c.getContext('2d'), field=$('field');
 const blockedKinds=new Set(['rock','tree','water']);
@@ -20,7 +20,7 @@ let state={index:0,mode:'prep',selected:'militia',placed:[],units:[],shots:[],ob
   budget:90,time:0,level:null,zoom:1,panX:0,panY:0,last:0,accum:0,hint:'',hover:null};
 let screenW=360,screenH=400,dpr=1,idCounter=1;
 const key=(x,y)=>x+','+y;
-const iso=(x,y)=>({x:x*TW,y:y*TH});
+const iso=(x,y)=>({x:x*TW+(H-y)*SKEW,y:y*TH});
 let mapMid={x:0,y:0};
 const at=(x,y)=>state.obstacles.get(key(x,y));
 const inMap=(x,y)=>x>=0&&y>=0&&x<W&&y<H;
@@ -34,10 +34,10 @@ function fitZoom(){return 1}
 function resetCamera(){state.zoom=1;state.panX=0;state.panY=0}
 function resize(){
  const r=field.getBoundingClientRect();screenW=Math.max(1,r.width);screenH=Math.max(1,r.height);
- const hud=document.querySelector('.summary').getBoundingClientRect(),bottom=document.querySelector('.controls').getBoundingClientRect();
- const top= Math.max(80,hud.bottom+45), foot=bottom.height+18;
- TW=screenW/W;TH=Math.max(12,(screenH-top-foot)/H);
- artScale=clamp(Math.min(TW/58,TH/43+.15),.55,1.08);mapMid={x:screenW/2,y:screenH/2-top};
+ const margin=Math.max(12,screenW*.025),top=screenH*.39;
+ TW=(screenW-margin*2)/(W+H*.32);SKEW=TW*.32;TH=Math.max(8,(screenH*.56-12)/H);
+ artScale=clamp(Math.min(TW/54,TH/31+.2),.44,1.1);
+ mapMid={x:(W*TW+H*SKEW)/2,y:screenH/2-top};
  dpr=Math.min(2,window.devicePixelRatio||1);c.width=Math.round(screenW*dpr);c.height=Math.round(screenH*dpr);
  resetCamera();
 }
@@ -49,7 +49,8 @@ function updateControls(){
  $('budget').textContent='⚜ '+remaining()+' / '+state.budget;
  $('chapter').textContent='Глава '+state.level.chapter+' — '+state.level.faction;
  $('battleTime').textContent=state.mode==='prep'?'Подготовка':state.mode==='battle'?'Бой '+Math.floor(state.time)+' с':state.mode==='win'?'Победа':'Поражение';
- $('mapTitle').textContent=state.level.id+' / 24 · '+state.level.title;
+ $('mapTitle').textContent=state.level.title;
+ $('battleNumber').textContent=String(state.level.id).padStart(2,'0')+' / 24';
  $('fight').disabled=state.mode!=='prep'||state.placed.length===0;
  $('fight').classList.toggle('hidden',state.mode!=='prep');
  $('clear').classList.toggle('hidden',state.mode!=='prep');
@@ -70,7 +71,9 @@ function setupShop(){
   const price=document.createElement('span');price.className='unitCost';price.textContent='⚜ '+u.cost;
   const role=document.createElement('span');role.className='unitHint';role.textContent=
     ({militia:'Дешёвый',shield:'Держит строй',spear:'Против конницы',archer:'Дальний бой',rider:'Обходит фланг',bogatyr:'Герой'})[u.id];
-  button.append(n,price,role);
+  const portrait=document.createElement('canvas');portrait.className='unitPortrait';portrait.width=128;portrait.height=88;portrait.setAttribute('aria-hidden','true');
+  const pg=portrait.getContext('2d');pg.translate(60,84);const scale=u.id==='rider'?.8:.93;pg.scale(scale,scale);window.RUS_ART.draw(pg,{...u,team:'rus',hpNow:u.hp},0);
+  button.append(portrait,n,price,role);
   button.addEventListener('click',()=>{state.selected=u.id;notify('Выбран: '+u.name+'. Коснись пустой клетки в бело-красной зоне.');updateControls()});
   shop.append(button);
  }
@@ -94,7 +97,6 @@ function placeAt(x,y){
  if(!inMap(x,y)){notify('За пределами поля.');return}
  const existing=state.placed.findIndex(u=>Math.floor(u.x)===x&&Math.floor(u.y)===y);
  if(existing>=0){const old=state.placed.splice(existing,1)[0];notify(unitDefs.get(old.id).name+' вернулся в запас.');updateControls();return}
- if(y<2){notify('Верхний край оставлен для знамён. Ставь дружину ниже.');return}
  if(x>=D.DEPLOY){notify('Тут нельзя разместить русов: нужна бело-красная область слева.');return}
  if(solid(x,y)){notify('Здесь препятствие — клетка занята.');return}
  const def=unitDefs.get(state.selected);
@@ -209,6 +211,7 @@ function attack(u,t){
 function tick(dt){
  if(state.mode!=='battle')return;
  state.time+=dt;
+ if(Math.floor(state.time)!==Math.floor(state.time-dt))$('battleTime').textContent='Бой '+Math.floor(state.time)+' с';
  for(const u of state.units){
   u.motion=Math.max(0,(u.motion||0)-dt);u.hurt=Math.max(0,(u.hurt||0)-dt);
   if(u.hpNow<=0)continue;
@@ -239,7 +242,7 @@ function screenPoint(e){const rect=c.getBoundingClientRect();return{x:e.clientX-
 function cellAt(p){
  const px=(p.x-screenW/2-state.panX)/state.zoom+mapMid.x,
        py=(p.y-screenH/2-state.panY)/state.zoom+mapMid.y;
- return{x:Math.floor(px/TW),y:Math.floor(py/TH)};
+ const yy=py/TH;return{x:Math.floor((px-(H-yy)*SKEW)/TW),y:Math.floor(yy)};
 }
 function poly(pts,fill,stroke=null,width=1){
  g.beginPath();g.moveTo(pts[0][0],pts[0][1]);
@@ -249,19 +252,20 @@ function poly(pts,fill,stroke=null,width=1){
 function oval(x,y,rx,ry,col){g.beginPath();g.ellipse(x,y,rx,ry,0,0,Math.PI*2);g.fillStyle=col;g.fill()}
 function segment(x1,y1,x2,y2,col,w=2){g.beginPath();g.moveTo(x1,y1);g.lineTo(x2,y2);g.lineCap='round';g.lineWidth=w;g.strokeStyle=col;g.stroke()}
 function drawDiamond(p,fill,stroke){
- poly([[p.x-TW/2,p.y-TH/2],[p.x+TW/2,p.y-TH/2],[p.x+TW/2,p.y+TH/2],[p.x-TW/2,p.y+TH/2]],fill,stroke,.55)
+ poly([[p.x-TW/2+SKEW/2,p.y-TH/2],[p.x+TW/2+SKEW/2,p.y-TH/2],[p.x+TW/2-SKEW/2,p.y+TH/2],[p.x-TW/2-SKEW/2,p.y+TH/2]],fill,stroke,.55)
 }
 function tile(x,y){
  const p=iso(x+.5,y+.5),biome=biomes[state.level.biome]||biomes.steppe;
- const colors=biome[clamp(Math.floor(hash(x,y,1)*3),0,2)];
+ const colors=biome[0];
  const o=at(x,y);
  let fill=colors;
  if(o==='water')fill='#407f91';
  if(o==='mud')fill='#666b4f';
  if(o==='road')fill='#ad9470';
- drawDiamond(p,fill,'#1e41221c');
- if(state.mode==='prep'&&x<D.DEPLOY&&y>=2)drawDiamond(p,'#fff2de24');
- if(state.mode==='prep'&&x>=14)drawDiamond(p,'#e86e5d12');
+ drawDiamond(p,fill,'#35523835');
+ if(!o)drawDiamond(p,hash(x,y,1)>.5?'#e6e8ad09':'#183c2808');
+ if(state.mode==='prep'&&x<D.DEPLOY)drawDiamond(p,'#fff2de24');
+ if(state.mode==='prep'&&x>=8)drawDiamond(p,'#e86e5d12');
  if(o==='water'){
   for(let i=0;i<2;i++){const xx=p.x-17+hash(x,y,i)*29,yy=p.y-3+i*5;segment(xx,yy,xx+12,yy-2,'#c0e5dc7a',1.1)}
  }else{
@@ -304,7 +308,7 @@ function unitDraw(u){
  g.restore();
 }
 function flagDraw(enemy){
- const p=iso(enemy?W-1.7:1.7,1.7),t=state.last/1000,wave=Math.sin(t*3+(enemy?2:0))*3;
+ const p=iso(enemy?W-.8:.8,-.15),t=state.last/1000,wave=Math.sin(t*3+(enemy?2:0))*3;
  g.save();g.translate(p.x,p.y);g.scale(Math.max(.65,artScale),Math.max(.65,artScale));
  oval(0,1,18,4,'#203b3540');segment(0,0,0,-90,'#614c36',4);segment(-1,-89,-1,0,'#e0c191',1);poly([[0,-99],[-4,-89],[4,-89]],'#ead49a');
  const colors=enemy?['#9f5a36','#2f6876','#365d44','#43494e','#836044','#a33336'][state.level.chapter-1]:'#f5edd9';
@@ -319,19 +323,39 @@ function flagDraw(enemy){
  else {segment(13,-78,29,-78,'#e6d3a0',2);segment(21,-81,21,-64,'#e6d3a0',2);segment(14,-71,28,-71,'#e6d3a0',2)} }
  g.restore();
 }
+function sceneryDraw(){
+ const colors=biomes[state.level.biome]||biomes.steppe,sky=g.createLinearGradient(0,0,0,screenH*.65);
+ sky.addColorStop(0,'#aabec0');sky.addColorStop(.36,'#d7d9b6');sky.addColorStop(.37,'#93a784');sky.addColorStop(1,colors[0]);
+ g.fillStyle=sky;g.fillRect(0,0,screenW,screenH);
+ const horizon=screenH*.26;
+ // Distant hills and a tree line frame a broad open battlefield.
+ for(let layer=0;layer<2;layer++){
+  const pts=[[0,horizon+screenH*.14]];for(let i=0;i<=16;i++)pts.push([screenW*i/16,horizon+Math.sin(i*.8+layer)*screenH*.045+layer*screenH*.04]);
+  pts.push([screenW,horizon+screenH*.2]);poly(pts,layer?'#6e8c72':'#91a693');
+ }
+ for(let i=0;i<27;i++){
+  const x=i*screenW/26,y=horizon+screenH*.1+hash(i,0,50)*screenH*.04,ht=screenH*(.05+hash(i,1,60)*.045);
+  segment(x,y,x,y-ht*.5,'#5d7560',2);poly([[x,y-ht],[x-ht*.34,y-ht*.15],[x+ht*.34,y-ht*.15]],i%2?'#56775e':'#638168');
+ }
+ const haze=g.createLinearGradient(0,horizon,0,screenH*.47);haze.addColorStop(0,'#d6dab33b');haze.addColorStop(1,'#d6dab300');g.fillStyle=haze;g.fillRect(0,horizon,screenW,screenH*.22);
+ // Foreground grasses soften the outline without hiding the deployment grid.
+ for(let i=0;i<30;i++){
+  const x=hash(i,2,80)*screenW,y=screenH*(.96+hash(i,3,90)*.04);segment(x,y,x-2,y-4,'#607f51',1);
+ }
+}
 function render(){
  if(!c.width||!c.height)return;
  g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,screenW,screenH);
- g.fillStyle=(biomes[state.level.biome]||biomes.steppe)[0];g.fillRect(0,0,screenW,screenH);
+ sceneryDraw();
  g.save();g.translate(screenW/2+state.panX,screenH/2+state.panY);
  g.scale(state.zoom,state.zoom);g.translate(-mapMid.x,-mapMid.y);
  for(let sum=0;sum<=W+H-2;sum++)for(let y=Math.max(0,sum-W+1);y<=Math.min(H-1,sum);y++)tile(sum-y,y);
  if(state.hover&&state.mode==='prep'&&inMap(state.hover.x,state.hover.y)){
   const p=iso(state.hover.x+.5,state.hover.y+.5);
-  const ok=state.hover.x<D.DEPLOY&&state.hover.y>=2&&!solid(state.hover.x,state.hover.y);
+  const ok=state.hover.x<D.DEPLOY&&!solid(state.hover.x,state.hover.y);
   drawDiamond(p,ok?'#bde6a075':'#e879647d',ok?'#e0f2ce':'#f7ae9b');
  }
- const drawables=[{sort:TH*1.7,kind:'flag',value:{enemy:false}},{sort:TH*1.7,kind:'flag',value:{enemy:true}}];
+ const drawables=[{sort:-TH*.15,kind:'flag',value:{enemy:false}},{sort:-TH*.15,kind:'flag',value:{enemy:true}}];
  state.level.obstacles.forEach(o=>{if(o.type!=='water')drawables.push({sort:iso(o.x+.5,o.y+.5).y,kind:'obstacle',value:o})});
  if(state.mode==='prep'){
   state.placed.forEach(p=>drawables.push({sort:iso(p.x,p.y).y,kind:'unit',value:{...unitDefs.get(p.id),team:'rus',x:p.x,y:p.y,hpNow:unitDefs.get(p.id).hp,walk:0,flash:0}}));
@@ -383,6 +407,13 @@ c.addEventListener('wheel',e=>{e.preventDefault();state.zoom=clamp(state.zoom*(e
 $('plus').addEventListener('click',()=>state.zoom=clamp(state.zoom*1.2,.27,2.8));
 $('minus').addEventListener('click',()=>state.zoom=clamp(state.zoom/1.2,.27,2.8));
 $('home').addEventListener('click',resetCamera);
+function toggleMenu(open){$('menuPanel').classList.toggle('hidden',!open);$('menu').setAttribute('aria-expanded',String(open))}
+$('menu').addEventListener('click',()=>toggleMenu($('menu').getAttribute('aria-expanded')!=='true'));
+$('closeMenu').addEventListener('click',()=>toggleMenu(false));
+$('level').addEventListener('change',()=>toggleMenu(false));
+$('fullscreen').addEventListener('click',async()=>{
+ try{if(document.fullscreenElement)await document.exitFullscreen();else if(document.documentElement.requestFullscreen)await document.documentElement.requestFullscreen();else notify('В Safari разверни телефон горизонтально; полноэкранный режим доступен через добавление игры на экран Домой.')}catch{notify('Поверни телефон горизонтально — игра подстроится под экран.')}
+});
 $('clear').addEventListener('click',clearArmy);
 $('fight').addEventListener('click',startBattle);
 $('retry').addEventListener('click',()=>loadLevel(state.index));

@@ -1,60 +1,16 @@
-:root{color-scheme:dark;font:14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-*{box-sizing:border-box}
-html,body{height:100%;width:100%;margin:0;overflow:hidden;background:#18271f;color:#f8e8c8}
-button,select{font:inherit;touch-action:manipulation}
-button{cursor:pointer}
-#app{display:flex;flex-direction:column;height:100%;height:100dvh;min-height:0;overflow:hidden}
-.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px max(13px,env(safe-area-inset-right)) 8px max(13px,env(safe-area-inset-left));background:#1f3025;border-bottom:1px solid #57624c}
-.brand strong{display:block;font-size:18px;letter-spacing:.5px;color:#ffe4a0}.brand span{color:#e9f0da}
-.brand small{display:block;font-size:10px;color:#bac8ae;margin-top:1px}
-.levelbox{display:flex;align-items:center;gap:8px;min-width:0}.levelbox label{font-size:11px;color:#d1d5ba}
-select{max-width:190px;min-width:120px;background:#314b38;border:1px solid #9b9c71;color:#fff1ce;padding:8px 4px;border-radius:8px;text-overflow:ellipsis}
-.summary{background:#293b30;border-bottom:1px solid #53684d;padding:7px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px}
-#budget{color:#ffe49f;font-weight:800;font-variant-numeric:tabular-nums}
-#chapter{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#battleTime{color:#c6dac8;white-space:nowrap}
-.field{flex:1;position:relative;min-height:120px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#365543 0%,#203a2d 75%,#18261c 100%)}
-#battle{height:100%;width:100%;display:block;touch-action:none}
-.mapTitle,.tip,.camera,.result{position:absolute;pointer-events:none}
-.mapTitle{top:10px;left:10px;background:#1f3026dc;border:1px solid #6d805c;border-radius:8px;padding:7px 9px;font-size:12px;font-weight:700}
-.tip{left:10px;bottom:9px;right:65px;max-width:620px;color:#f3e8d1;background:#17261cce;border-radius:8px;padding:7px 9px;font-size:11px;line-height:1.35}
-.camera{right:10px;bottom:10px;display:flex;flex-direction:column;gap:6px;pointer-events:auto}.camera button{height:35px;width:35px;border:1px solid #839575;color:#eee5c9;background:#203a2eeb;border-radius:8px;font-size:20px}
-.result{top:50%;left:50%;transform:translate(-50%,-50%);background:#17271ff2;border:2px solid #d4b86e;border-radius:14px;min-width:min(290px,85%);padding:20px 15px;text-align:center;display:flex;flex-direction:column;gap:9px;box-shadow:0 10px 50px #0009}
-.result strong{font-size:24px;color:#ffe2a0}.result span{font-size:12px;line-height:1.5}
-.hidden{display:none!important}
-.controls{background:#202f26;border-top:1px solid #586d4e;padding:8px max(10px,env(safe-area-inset-right)) max(10px,env(safe-area-inset-bottom)) max(10px,env(safe-area-inset-left))}
-.actions{display:flex;gap:6px;align-items:stretch}.actions button{padding:10px 12px;border-radius:9px;border:1px solid #819370;white-space:nowrap;min-height:42px}
-.actions .primary{background:#aa7135;color:#fff5df;border-color:#efba71;font-size:15px;font-weight:900;margin-left:auto;flex:1;max-width:190px}.actions .primary:disabled{opacity:.45}
-.actions .secondary{background:#324538;color:#f1e9d0}.actions button:hover{filter:brightness(1.14)}
-.shoplabel{display:flex;align-items:baseline;gap:8px;margin:10px 0 7px;font-size:11px;font-weight:800;letter-spacing:.6px;color:#f1d99c}.shoplabel small{font-size:10px;letter-spacing:0;font-weight:400;color:#aebeaa}
-.shop{display:flex;gap:7px;overflow-x:auto;padding-bottom:3px;scrollbar-width:thin;scrollbar-color:#6f8067 transparent}
-.unitCard{display:flex;flex-direction:column;min-width:91px;align-items:flex-start;padding:8px 10px;gap:3px;border-radius:10px;border:1px solid #708269;background:#304335;color:#f7e9c9;text-align:left}
-.unitCard.selected{border-color:#f2cf7f;background:#5e5a38;box-shadow:inset 0 0 0 1px #f2cf7f}
-.unitCard .unitName{font-size:12px;font-weight:750}.unitCard .unitCost{color:#f6d88e;font-size:12px}.unitCard .unitHint{font-size:10px;color:#c3ccba}
-.unitCard:disabled{opacity:.42}
-@media(max-width:540px){
- .brand strong{font-size:14px}.brand small{font-size:9px}
- .top{padding-top:6px;padding-bottom:6px}
- .summary{font-size:11px}
- .levelbox label{display:none}select{max-width:142px;font-size:11px;padding:7px 3px;min-width:106px}
- .actions button{font-size:11px;padding:8px;min-height:39px}
- .actions .primary{font-size:13px}
- .shoplabel small{display:none}
- .unitCard{min-width:90px}
- .mapTitle{font-size:11px}
-}
-@media(max-height:580px){.shoplabel{margin:5px 0 4px}.unitCard{padding:5px 8px}.controls{padding-top:5px;padding-bottom:5px}.mapTitle{padding:4px 7px}.tip{padding:4px 7px}}
-/* The battlefield is the entire viewport; HUD floats above the terrain. */
-#app{position:relative;isolation:isolate}
-.field{position:absolute;inset:0;z-index:0;min-height:0}
-.top,.summary,.controls{position:relative;z-index:2;flex-shrink:0}
-.top{background:#203329e8;backdrop-filter:blur(8px)}
-.summary{background:#203329c9;padding-top:5px;padding-bottom:5px}
-.controls{margin-top:auto;background:#203329ed;backdrop-filter:blur(8px)}
-.mapTitle{top:93px;font-size:10px;padding:5px 8px;background:#2033299c;pointer-events:none}
-.tip{bottom:163px;font-size:10px;max-width:480px;padding:5px 8px}
-.camera{bottom:166px;gap:4px}.camera button{width:32px;height:32px}
-.shoplabel{margin:5px 0}.unitCard{padding:6px 9px;min-width:90px}
-.unitCard.selected{border-color:#e9c9b4;background:#77413e}
-@media(max-width:540px){.brand small{display:none}.top{min-height:43px}.summary{padding:5px 10px}.mapTitle{top:76px}.tip{bottom:151px;right:48px;font-size:9px}.camera{bottom:151px;right:7px}.unitCard{min-width:82px}.controls{padding-top:6px}.shoplabel{font-size:10px}}
-@media(max-height:500px){.brand small,.shoplabel,.unitHint,.tip{display:none}.top{padding:3px 10px;min-height:34px}.summary{padding:3px 10px}.controls{display:flex;gap:8px;align-items:center;padding:4px 8px}.actions{order:2;margin-left:auto}.shop{flex:1}.unitCard{min-width:77px;padding:5px 7px}.actions button{min-height:35px;padding:5px 9px}.mapTitle{top:62px}.camera{bottom:66px;flex-direction:row}}
+:root{color-scheme:dark;font:14px system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;--rail:112px;--command:126px;--dock:98px;--gold:#d7bf85;--paper:#f2e9d3}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#1d302a;color:var(--paper)}button,select{font:inherit;touch-action:manipulation}button{cursor:pointer;border:1px solid #84907477;border-radius:7px;color:var(--paper);background:#32483f;min-height:36px}button:active{filter:brightness(1.2)}button:focus-visible,select:focus-visible{outline:2px solid #f4d18b;outline-offset:2px}button:disabled{opacity:.4;cursor:default}
+#app{position:relative;display:grid;grid-template-columns:var(--rail) minmax(0,1fr) var(--command);grid-template-rows:minmax(0,1fr) var(--dock);height:100%;height:100dvh;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);isolation:isolate;background:#1e332b}
+.infoPanel,.commandPanel{position:relative;z-index:2;padding:17px 10px;display:flex;flex-direction:column;gap:18px;background:linear-gradient(100deg,#35483c,#1e332c);box-shadow:3px 0 14px #12271e55}
+.infoPanel{grid-column:1;grid-row:1/3;border-right:1px solid #b19d5f55}.commandPanel{grid-column:3;grid-row:1/3;border-left:1px solid #b19d5f55;box-shadow:-3px 0 14px #12271e55;gap:12px}
+.brand{font-family:Georgia,serif;font-size:23px;font-weight:bold;letter-spacing:2px;color:#ebd29b;text-align:center}.brand span{display:block;font:8px system-ui;letter-spacing:1px;margin-top:5px;color:#b1c2ae}
+.counter small,.budgetbox small{display:block;font-size:8px;letter-spacing:1px;color:#b3c2ac;margin-bottom:5px}.counter strong{font-family:Georgia,serif;font-size:25px;font-variant-numeric:tabular-nums}.mapTitle{font-size:11px;line-height:1.45;color:#d4ddc5}.budgetbox{padding-top:15px;border-top:1px solid #81916e4d}.budgetbox strong{font-size:14px;white-space:nowrap;color:#f0d298;font-variant-numeric:tabular-nums}#chapter{font-size:10px;line-height:1.5;color:#bcc9b2}#battleTime{font-size:10px;color:#f0d298}.sideRune{margin-top:auto;text-align:center;color:#cab47f55;font-size:46px}
+.field{grid-column:2;grid-row:1;position:relative;min-width:0;min-height:0;overflow:hidden;background:#80956e}#battle{display:block;width:100%;height:100%;touch-action:none}.tip{position:absolute;bottom:7px;left:12px;right:12px;pointer-events:none;text-align:center;font-size:10px;line-height:1.4;color:#edf0d5;text-shadow:0 1px 3px #152d22;background:#203b2545;border-radius:5px;padding:4px 7px}
+.camera{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}.camera button{font-size:19px;min-width:0;padding:0}.commandPanel>button{font-size:11px;padding:7px 5px}.actions{display:flex;flex-direction:column;gap:10px;margin-top:auto}.actions button{font-size:10px;padding:8px 5px}.actions .primary{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:92px;background:linear-gradient(#a34736,#712e2b);border:1px solid #e2b579;box-shadow:inset 0 0 0 3px #52231b55,0 3px 10px #10201955;font-size:29px;color:#ffe7ad}.primary span{font-size:17px;font-weight:900;letter-spacing:1px}.secondary{background:#2a4037}
+.controls{grid-column:2;grid-row:2;z-index:2;padding:8px 9px max(8px,env(safe-area-inset-bottom));border-top:1px solid #a5915e66;background:linear-gradient(#35493c,#20332a);min-width:0}.shop{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));height:100%;gap:6px}.unitCard{position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;min-width:0;padding:3px 2px;gap:2px;background:#21382e;border-color:#78876b80}.unitCard.selected{background:#714137;border-color:#ecc88d;box-shadow:inset 0 0 0 1px #ecc88d70}.unitPortrait{height:44px;width:64px;max-width:100%;display:block;pointer-events:none}.unitName{font-size:10px;font-weight:650;white-space:nowrap}.unitCost{font-size:10px;color:#e5c990}.unitHint{display:none}
+.result{position:absolute;z-index:4;left:50%;top:50%;transform:translate(-50%,-50%);max-width:85%;width:320px;padding:23px 18px;background:#1e332df5;border:1px solid #d6bd82;border-radius:10px;text-align:center;display:flex;flex-direction:column;gap:12px;box-shadow:0 10px 40px #12281c88}.result strong{font-family:Georgia,serif;font-size:23px;color:#f1d39b}.result span{font-size:12px;line-height:1.5}
+.menuPanel{position:absolute;z-index:5;right:calc(var(--command) + env(safe-area-inset-right) + 9px);top:12px;max-width:calc(100% - var(--rail) - var(--command) - 20px);width:300px;padding:18px;background:#20382ff7;border:1px solid #c6ae78;border-radius:9px;box-shadow:0 6px 40px #10261e99}.menuPanel strong{display:block;color:#f1d39b;letter-spacing:1px;margin-bottom:17px;font-size:12px}.menuPanel label{font-size:10px;display:block;margin-bottom:5px;color:#becdb7}select{display:block;width:100%;padding:9px 5px;background:#354d40;color:#fff1d1;border:1px solid #92a17a;border-radius:5px}.menuPanel p{font-size:11px;line-height:1.5;color:#c5d1ba}.menuPanel button{width:100%;font-size:11px}
+.hidden{display:none!important}.rotatePrompt{display:none}
+@media(max-height:500px){:root{--rail:90px;--command:100px;--dock:75px}.infoPanel,.commandPanel{padding:9px 7px;gap:11px}.brand{font-size:18px}.brand span{font-size:6px}.counter strong{font-size:21px}.counter small,.budgetbox small{font-size:7px}.budgetbox{padding-top:9px}.budgetbox strong{font-size:11px}.mapTitle{font-size:9px}#chapter,#battleTime{font-size:9px}.sideRune{font-size:25px}.commandPanel>button{font-size:10px;padding:4px}.camera button{font-size:16px;min-height:30px}.actions{gap:6px}.actions .primary{min-height:63px;font-size:23px}.primary span{font-size:14px}.actions button{font-size:9px;min-height:30px;padding:5px}.controls{padding:4px 5px}.shop{gap:4px}.unitPortrait{height:34px;width:48px}.unitName{font-size:8px}.unitCost{font-size:9px}.tip{font-size:8px;bottom:4px}.menuPanel{padding:13px;max-height:calc(100% - 24px);overflow:auto}}
+@media(max-width:700px) and (orientation:portrait){.rotatePrompt{position:absolute;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:15px;background:radial-gradient(ellipse,#365144,#182e27);text-align:center;padding:25px}.rotatePrompt div{font-size:85px;color:#e5c488}.rotatePrompt strong{font-family:Georgia,serif;font-size:28px}.rotatePrompt span{font-size:13px;color:#c7d3bc}}
+@media(max-height:350px){.infoPanel,.commandPanel{gap:7px;padding-top:7px;padding-bottom:7px}.sideRune{display:none}.brand{font-size:16px}.mapTitle{font-size:8px}.budgetbox{padding-top:6px}.counter strong{font-size:18px}.actions .primary{min-height:55px}}
