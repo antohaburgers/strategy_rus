@@ -25,7 +25,8 @@ function play(){
  const promise=track.play();
  if(promise)promise.catch(()=>{});
 }
-function unlock(){started=true;play()}
+function unlock(){if(document.body.classList.contains('at-title'))return;started=true;play()}
+window.addEventListener('rus:start',unlock);
 button.addEventListener('click',()=>{
  muted=!muted;
  try{localStorage.setItem('rus-music-muted-v1',muted?'1':'0')}catch{}
@@ -40,5 +41,5 @@ document.addEventListener('visibilitychange',()=>{
 window.addEventListener('pagehide',()=>track.pause());
 window.addEventListener('pageshow',()=>{if(started)play()});
 label();
-play();
+if(!document.body.classList.contains('at-title'))play();
 })();

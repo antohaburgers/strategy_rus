@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#192e28">
-<meta name="app-version" content="2026.11.10-music-root2">
+<meta name="app-version" content="2026.11.10-title1">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,8 +15,18 @@
 <title>Русы против всех — битва дружин</title>
 <link rel="stylesheet" href="./style.css">
 </head>
-<body>
-<div id="app">
+<body class="at-title">
+<section id="titleScreen" class="titleScreen" aria-labelledby="titleName">
+ <canvas id="titleArt" aria-hidden="true"></canvas>
+ <div class="titleVignette" aria-hidden="true"></div>
+ <div class="titleContent">
+  <div class="titleOrnament" aria-hidden="true">✦ ━ ◆ ━ ✦</div>
+  <h1 id="titleName">РУСЫ<span>ПРОТИВ ВСЕХ</span></h1>
+  <button id="startGame" type="button">НАЧАТЬ ГОЙДУ!</button>
+ </div>
+ <div class="titleBorder" aria-hidden="true"></div>
+</section>
+<div id="app" inert aria-hidden="true">
  <aside class="infoPanel" aria-label="Сведения о битве">
   <div class="brand">РУСЫ<span>ПРОТИВ ВСЕХ</span></div>
   <div class="counter"><small>БИТВА</small><strong id="battleNumber">01 / 24</strong></div>
@@ -55,5 +65,5 @@
  </section>
  <div class="rotatePrompt"><div aria-hidden="true">↻</div><strong>Поверни телефон</strong><span>Дружина ждёт в альбомном режиме</span></div>
 </div>
-<script src="./game-data.js"></script><script src="./unit-renderer.js"></script><script src="./battle-audio.js"></script><script src="./background-music.js"></script><script src="./game.js"></script><script src="./pwa.js"></script>
+<script src="./game-data.js"></script><script src="./unit-renderer.js"></script><script src="./battle-audio.js"></script><script src="./background-music.js"></script><script src="./game.js"></script><script src="./pwa.js"></script><script src="./main-menu.js"></script>
 </body></html>

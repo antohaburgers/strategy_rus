@@ -457,6 +457,7 @@ $('retry').addEventListener('click',()=>loadLevel(state.index));
 $('resultRetry').addEventListener('click',()=>loadLevel(state.index));
 $('next').addEventListener('click',()=>loadLevel(Math.min(state.index+1,D.levels.length-1)));
 function frame(t){
+ if(document.body.classList.contains('at-title')){state.last=t;requestAnimationFrame(frame);return}
  const delta=Math.min(.08,(t-(state.last||t))/1000);
  state.last=t;state.accum=Math.min(.15,state.accum+delta);
  let count=0;while(state.accum>=1/30&&count++<5){tick(1/30);state.accum-=1/30}

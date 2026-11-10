@@ -23,3 +23,18 @@ html,body,#app{overscroll-behavior:none;touch-action:manipulation;-webkit-user-s
 .controls{border:1px solid #a5915e66;border-bottom-color:#b7a17388}
 .resultActions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:5px}.resultActions button{min-height:42px;flex:1;padding:9px 15px;font-size:13px;font-weight:750;white-space:nowrap}.resultActions .primary{background:linear-gradient(#a34736,#712e2b);border-color:#d7b477;color:#ffe7ad}
 @media(max-height:500px){.result{padding:16px 13px;gap:8px}.result strong{font-size:20px}.result span{font-size:11px}.resultActions button{min-height:38px;font-size:12px;padding:7px 10px}}
+
+/* Illustrated title screen uses the same Canvas soldiers as the battlefield. */
+.titleScreen{position:fixed;inset:0;z-index:30;overflow:hidden;background:#1b302b;isolation:isolate}
+#titleArt,.titleVignette{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.titleVignette{background:radial-gradient(ellipse at 50% 39%,transparent 20%,#0c201d45 70%,#081915c9 100%),linear-gradient(0deg,#0b201c88,transparent 50%)}
+.titleBorder{position:absolute;inset:max(12px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) max(14px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left));border:1px solid #d8bc7766;box-shadow:inset 0 0 0 5px #172d2333;pointer-events:none}
+.titleBorder::before,.titleBorder::after{content:"◆";position:absolute;top:-10px;color:#c6a365;font-size:17px}.titleBorder::before{left:12px}.titleBorder::after{right:12px}
+.titleContent{position:relative;z-index:1;display:flex;align-items:center;flex-direction:column;justify-content:center;height:100%;padding:24px;text-align:center}
+.titleOrnament{color:#dbc489;letter-spacing:6px;font-size:16px;text-shadow:0 2px 7px #10251b}
+.titleContent h1{font-family:Georgia,"Times New Roman",serif;font-weight:900;font-size:clamp(68px,12vw,154px);line-height:.95;letter-spacing:.08em;margin:18px 0 0 .08em;color:#f2dfac;text-shadow:0 3px 0 #644c32,0 7px 0 #172c23,0 12px 32px #0a211c}
+.titleContent h1 span{display:block;font-size:.21em;letter-spacing:.35em;line-height:1.6;margin-top:18px;color:#e8d5aa;text-shadow:0 2px 8px #10291e}
+#startGame{margin-top:clamp(36px,9vh,94px);min-height:64px;padding:20px 38px;border:2px solid #ddba75;border-radius:4px;background:linear-gradient(#a74b38,#752e29);box-shadow:inset 0 0 0 4px #51251c77,inset 0 0 16px #e1a76022,0 8px 0 #422a23,0 14px 36px #071c1b99;color:#ffe8ac;font-family:Georgia,serif;font-size:clamp(18px,2.5vw,25px);font-weight:900;letter-spacing:.08em;transition:filter .15s,transform .15s}
+#startGame:hover{filter:brightness(1.13)}#startGame:active{transform:translateY(4px)}#startGame:focus-visible{outline:3px solid #fff0c2;outline-offset:7px}
+@media(orientation:portrait){.titleContent{justify-content:flex-start;padding-top:23vh}.titleContent h1{font-size:clamp(66px,20vw,110px)}.titleContent h1 span{font-size:.22em;letter-spacing:.22em}#startGame{margin-top:10vh;padding:19px 25px;min-height:62px}.titleOrnament{font-size:12px}}
+@media(max-height:440px) and (orientation:landscape){.titleContent h1{font-size:clamp(62px,17vh,90px);margin-top:10px}.titleContent h1 span{margin-top:10px}.titleOrnament{font-size:11px}#startGame{margin-top:27px;min-height:54px;padding:15px 30px;font-size:19px}}
