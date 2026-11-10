@@ -19,6 +19,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Check game and roguelike
+        run: |
+          for file in *.js; do node --check "$file"; done
+          node tests/roguelike.cjs
+          node tests/roguelike-battle.cjs
+          node tests/battle-audio.cjs
+          node tests/pwa-lifecycle.cjs
+          node tests/pwa-sw.cjs
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site

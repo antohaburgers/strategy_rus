@@ -153,12 +153,20 @@ function dinosaur(u,gait,attack){
  }
  for(let i=0;i<4;i++){line([[-16+i*6,-30],[-15+i*6,-23]],shade,2);oval(-14+i*6,-32,1.3,1,'#d3cd9b')}
 }
+function bear(u,gait,attack){
+ const step=Math.sin(gait)*4;
+ for(const x of [-14,13])limb([[x,-17],[x+2-step,-7],[x-step,0]],'#3c3227',6);
+ oval(-3,-21,23,15,'#70553b',ink,1.5);oval(-12,-28,12,10,'#84674a');
+ for(const x of [-14,13]){limb([[x,-18],[x-2+step,-8],[x+step,1]],'#76583c',6);line([[x+step-3,2],[x+step+4,2]],'#c9b98d',2)}
+ oval(17+attack*4,-30,13,12,'#8e7050',ink,1.5);oval(9,-41,4,4,'#71583c',ink);oval(24,-40,4,4,'#71583c',ink);oval(24+attack*4,-26,10,6,'#b19a72',ink);oval(30+attack*4,-28,4,2.5,'#292d27');oval(19,-34,1.6,1.5,'#e4c87e');line([[26,-22],[32,-24]],ink,1.5);
+ line([[-12,-32],[-5,-27],[3,-32]],gold,2);rune(-5,-24,.65,'#a4cc9b');
+}
 const sizes={bogatyr:1.25,z_brute:1.45,d_rex:1.35,d_trike:1.13};
 window.RUS_ART={
  rune(ctx,x,y,size,col){c=ctx;rune(x,y,size,col)},
- height(u){if(u.id==='volkhv')return 94;return (['rider','p_horse','c_horsebow','c_lancer'].includes(u.id)?93:76)*(sizes[u.id]||1)},
+ height(u){if(u.id==='volkhv')return 94;if(u.id==='bear')return 62;return (['rider','p_horse','c_horsebow','c_lancer'].includes(u.id)?93:76)*(sizes[u.id]||1)*(u.bossScale||1)},
  draw(ctx,u,time=0){
- c=ctx;c.save();c.lineJoin='round';c.lineCap='round';const size=sizes[u.id]||1,dead=u.hpNow<=0;
+ c=ctx;c.save();c.lineJoin='round';c.lineCap='round';const size=(sizes[u.id]||1)*(u.bossScale||1),dead=u.hpNow<=0;
  const age=dead?Math.max(0,time-(u.deadVisualAt??u.deadAt??time)):0;
  const facing=u.facing??(u.team==='enemy'?-1:1),moving=!dead&&(u.motion||0)>0;
  const gait=dead?0:(u.walk||0)*10,attack=dead?0:Math.sin(Math.min(1,(u.flash||0)/.23)*Math.PI);
@@ -172,7 +180,8 @@ window.RUS_ART={
  const idle=dead?0:Math.sin(time*2.7+(u.idNum||u.x*3||0))*.55;
  c.translate(!dead&&(u.hurt||0)>0?-2:0,-(moving?Math.abs(Math.sin(gait))*(u.big?.7:1.2):idle));
  const lean=u.id==='z_runner'?.2:u.id==='z_shambler'?-.08:attack*.045;c.transform(1,0,-lean,1,0,0);
- if(u.id==='volkhv')volkhv(u,gait,attack,time);else if(u.id.startsWith('l_'))reptile(u,gait,attack);else if(u.id.startsWith('z_'))zombie(u,gait,attack);else if(u.id.startsWith('d_'))dinosaur(u,gait,attack);else human(u,gait,attack);
+ if(u.id==='bear')bear(u,gait,attack);else if(u.id==='volkhv')volkhv(u,gait,attack,time);else if(u.id.startsWith('l_'))reptile(u,gait,attack);else if(u.id.startsWith('z_'))zombie(u,gait,attack);else if(u.id.startsWith('d_'))dinosaur(u,gait,attack);else human(u,gait,attack);
+ if(u.bossKey&&!dead){const y=mount?-87:-66;path([[-11,y+5],[-13,y-5],[-5,y],[0,y-9],[5,y],[13,y-5],[11,y+5]],gold,ink,1);line([[-10,y+5],[10,y+5]],'#fff0b3',1.5);if(u.abilityFlash>0){c.globalAlpha=Math.min(.7,u.abilityFlash);oval(0,-22,24,30,'#dcba5d24',gold,1.2);c.globalAlpha=1}}
  if((u.electric||0)>0&&!dead){line([[-12,-35],[-6,-31],[-9,-24],[-2,-20]],'#99dce0',1.8);line([[8,-40],[13,-34],[9,-28]],'#99dce0',1.5)}
  if((u.hurt||0)>0&&!dead){c.globalAlpha=Math.min(.8,u.hurt*4);line([[-13,-38],[-18,-45]],'#fff4c9',2);line([[14,-31],[20,-34]],'#fff4c9',2)}
  c.restore();

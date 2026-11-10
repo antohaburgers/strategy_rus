@@ -34,14 +34,8 @@ function draw(){
  // Small golden sparks suspended over the field.
  for(let i=0;i<28;i++){ctx.fillStyle='#ebca7b66';ctx.beginPath();ctx.arc((i*137.3)%w,h*(.3+(i%13)*.048),i%3===0?1.6:.8,0,Math.PI*2);ctx.fill()}
 }
-button.addEventListener('click',()=>{
- if(screen.hidden)return;
- screen.hidden=true;screen.classList.add('hidden');document.body.classList.remove('at-title');
- app.inert=false;app.removeAttribute('inert');app.removeAttribute('aria-hidden');
- window.dispatchEvent(new Event('resize'));
- window.dispatchEvent(new Event('rus:start'));
- document.getElementById('menu').focus({preventScroll:true});
-});
+button.addEventListener('click',()=>window.RUS_UI.launch());
 window.addEventListener('resize',draw);
 draw();
 })();
+

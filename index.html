@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#192e28">
-<meta name="app-version" content="2026.11.10-perun2">
+<meta name="app-version" content="2026.11.10-rogue1">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -23,23 +23,26 @@
   <div class="titleOrnament" aria-hidden="true">✦ ━ ◆ ━ ✦</div>
   <h1 id="titleName">РУСЫ<span>ПРОТИВ ВСЕХ</span></h1>
   <button id="startGame" type="button">НАЧАТЬ ГОЙДУ!</button>
+  <button id="newGame" class="newGoida" type="button" hidden>НОВАЯ ГОЙДА</button>
+  <p class="titleMode">РУНИЧЕСКИЙ РОГАЛИК · ОДНО ПОРАЖЕНИЕ — КОНЕЦ ЗАБЕГА</p>
  </div>
  <div class="titleBorder" aria-hidden="true"></div>
 </section>
 <div id="app" inert aria-hidden="true">
  <aside class="infoPanel" aria-label="Сведения о битве">
   <div class="brand">РУСЫ<span>ПРОТИВ ВСЕХ</span></div>
-  <div class="counter"><small>БИТВА</small><strong id="battleNumber">01 / 24</strong></div>
+  <div class="counter"><small>БИТВА</small><strong id="battleNumber">01</strong></div>
+  <span id="cycleNumber">Цикл 1 · обычный бой</span>
   <div id="mapTitle" class="mapTitle">Степная застава</div>
   <div class="budgetbox"><small>ЗАПАС ДРУЖИНЫ</small><strong id="budget">⚜ 90 / 90</strong></div>
   <span id="chapter">Глава 1 — Печенеги</span>
   <span id="battleTime">Подготовка</span>
-  <div class="sideRune" aria-hidden="true">ᛉ</div>
+  <div id="bossStatus" class="bossStatus" hidden><strong id="bossName"></strong><progress id="bossHealth" max="100" value="100" aria-label="Здоровье босса"></progress><span id="bossHP"></span></div>
  </aside>
  <main class="field" id="field">
   <canvas id="battle" aria-label="Поле боя. Выберите бойца внизу и коснитесь клетки слева."></canvas>
   <div class="tip" id="tip"></div>
-  <div id="result" class="result hidden" role="status" aria-live="polite"><strong id="resultTitle"></strong><span id="resultText"></span><div class="resultActions"><button id="next" class="primary hidden">Дальше →</button><button id="resultRetry" class="secondary">↻ Повторить</button></div></div>
+
  </main>
  <aside class="commandPanel" aria-label="Управление битвой">
   <button id="menu" aria-expanded="false" aria-controls="menuPanel">☰ <span>Меню</span></button>
@@ -48,12 +51,12 @@
   <div class="actions">
    <button id="fight" class="primary">⚔<span>В БОЙ!</span></button>
    <button id="clear" class="secondary">↻ <span>Сброс армии</span></button>
-   <button id="retry" class="secondary hidden">Повторить</button>
   </div>
  </aside>
- <footer class="controls"><div id="shop" class="shop" role="group" aria-label="Выбор русских воинов"></div></footer>
+ <footer class="controls"><div class="runeBar"><div id="activeRunes" class="runeStrip" aria-label="Пять слотов рун"></div><span id="runCoins" class="runCoins">● 0</span></div><div id="shop" class="shop" role="group" aria-label="Выбор русских воинов"></div></footer>
  <section id="menuPanel" class="menuPanel hidden" aria-label="Меню игры">
-  <strong>ВЫБРАТЬ БИТВУ</strong><label for="level">Открытые сражения</label><select id="level" aria-label="Выбрать битву"></select>
+  <strong>РУНИЧЕСКИЙ РОГАЛИК</strong><p id="runMenuSummary"></p>
+  <p>Четыре обычных боя, затем босс. Одно поражение завершит забег.</p>
   <p>Выбери бойца снизу и коснись клетки в левой части поля. Повторное касание возвращает бойца в запас.</p>
   <p>Два пальца — масштаб. Перетягивание — камера. «⌖» — всё поле.</p>
   <p class="installHelp">iPhone: открой игру в Safari → «Поделиться» → «На экран Домой». Ссылка и прогресс сохранятся; для обновлений нужен интернет.</p>
@@ -64,9 +67,13 @@
   <button id="soundToggle" aria-pressed="true">🔊 Звуки: вкл.</button>
   <div class="volumeControl"><label for="soundVolume">Громкость эффектов <output id="soundVolumeValue" for="soundVolume">50%</output></label><input id="soundVolume" type="range" min="0" max="100" step="1" value="50" aria-label="Громкость эффектов"></div>
   <button id="closeMenu">Вернуться к дружине</button>
+  <button id="backToTitle">Главное меню</button>
  </section>
- <div class="rotatePrompt"><div aria-hidden="true">↻</div><strong>Поверни телефон</strong><span>Дружина ждёт в альбомном режиме</span></div>
+
 </div>
-<script src="./game-data.js"></script><script src="./unit-renderer.js"></script><script src="./battle-audio.js"></script><script src="./background-music.js"></script><script src="./game.js"></script><script src="./pwa.js"></script><script src="./main-menu.js"></script>
+<p id="saveNotice" class="saveNotice" hidden>Не удалось сохранить забег на устройстве. Проверь свободное место и доступ к хранилищу.</p>
+<section id="runScreen" class="runScreen" role="dialog" aria-label="Забег и лавка рун" aria-modal="true" hidden></section>
+<section id="runModal" class="runModal" role="dialog" aria-label="Информация о руне" aria-modal="true" hidden></section>
+<script src="./game-data.js"></script><script src="./roguelike.js"></script><script src="./rune-effects.js"></script><script src="./unit-renderer.js"></script><script src="./battle-audio.js"></script><script src="./background-music.js"></script><script src="./game.js"></script><script src="./rogue-ui.js"></script><script src="./pwa.js"></script><script src="./main-menu.js"></script>
 </body></html>
 
