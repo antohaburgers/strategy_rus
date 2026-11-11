@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
 <meta name="theme-color" content="#192e28">
-<meta name="app-version" content="2026.11.10-rod21">
+<meta name="app-version" content="2026.11.11-goida30">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -25,7 +25,7 @@
   <h1 id="titleName">РУСЫ<span>ПРОТИВ ВСЕХ</span></h1>
   <button id="startGame" type="button">НАЧАТЬ ГОЙДУ!</button>
   <button id="newGame" class="newGoida" type="button" hidden>НОВАЯ ГОЙДА</button>
-  <p class="titleMode">РУНИЧЕСКИЙ РОГАЛИК</p>
+  <p class="titleMode">ВЕДАТЬ И ПОБЕЖДАТЬ · 3.0</p>
  </div>
  <div class="titleBorder" aria-hidden="true"></div>
 </section>
@@ -42,7 +42,7 @@
  </aside>
  <main class="field" id="field">
   <canvas id="battle" aria-label="Поле боя. Выберите бойца внизу и коснитесь клетки слева."></canvas>
-  <div class="tip" id="tip"></div>
+  <div id="battleCondition" class="battleCondition" aria-live="polite"></div><div class="tip" id="tip"></div>
 
  </main>
  <aside class="commandPanel" aria-label="Управление битвой">
@@ -51,15 +51,16 @@
   <button id="fullscreen" class="secondary" aria-label="На весь экран">⛶ <span>На весь экран</span></button>
   <div class="actions">
    <button id="fight" class="primary">⚔<span>В БОЙ!</span></button>
+   <button id="guard" class="guardButton" hidden>ЗАЩИТА РОДА</button>
    <button id="clear" class="secondary">↻ <span>Сброс армии</span></button>
   </div>
  </aside>
- <footer class="controls"><div class="runeBar"><div id="activeRunes" class="runeStrip" aria-label="Пять слотов рун"></div><span id="runeWhisper" class="runeWhisper" aria-live="polite"></span><span id="runCoins" class="runCoins">● 0</span></div><div id="shop" class="shop" role="group" aria-label="Выбор русских воинов"></div></footer>
+ <footer class="controls"><div class="runeBar"><div id="activeRunes" class="runeStrip" aria-label="Активные руны"></div><span id="runeWhisper" class="runeWhisper" aria-live="polite"></span><span id="runCoins" class="runCoins">● 0</span></div><div id="shop" class="shop" role="group" aria-label="Выбор русских воинов"></div></footer>
  <section id="menuPanel" class="menuPanel hidden" aria-label="Меню игры">
   <strong>РУНИЧЕСКИЙ РОГАЛИК</strong><p id="runMenuSummary"></p>
-  <p>Четыре обычных боя, затем босс. Одно поражение завершит забег.</p>
+  <p>Три случайные главы по четыре боя: обычный, испытание, усиленный, босс. Одно поражение завершит забег.</p>
   <p>Выбери бойца снизу и коснись клетки в левой части поля. Повторное касание возвращает бойца в запас.</p>
-  <p>Два пальца — масштаб. Перетягивание — камера. «⌖» — всё поле.</p>
+  <p>Перед боем прочитай условие. Красная зона предупреждает о мощной атаке: «Защита Рода» снижает урон на 65% на 2,2 с, перезарядка 9 с.</p><p>Два пальца — масштаб. Перетягивание — камера. «⌖» — всё поле.</p>
   <p class="installHelp">iPhone: открой игру в Safari → «Поделиться» → «На экран Домой». Ссылка и прогресс сохранятся; для обновлений нужен интернет.</p>
   <button id="installGame" class="hidden">Установить игру</button>
   <button id="updateGame" class="hidden">Обновить игру</button>
@@ -75,6 +76,6 @@
 <p id="saveNotice" class="saveNotice" hidden>Не удалось сохранить забег на устройстве. Проверь свободное место и доступ к хранилищу.</p>
 <section id="runScreen" class="runScreen" role="dialog" aria-label="Забег и лавка рун" aria-modal="true" hidden></section>
 <section id="runModal" class="runModal" role="dialog" aria-label="Информация о руне" aria-modal="true" hidden></section>
-<script src="./game-data.js"></script><script src="./roguelike.js"></script><script src="./rune-art.js"></script><script src="./rune-effects.js"></script><script src="./unit-renderer.js"></script><script src="./battle-audio.js"></script><script src="./background-music.js"></script><script src="./game.js"></script><script src="./rogue-ui.js"></script><script src="./pwa.js"></script><script src="./main-menu.js"></script>
+<script src="./game-data.js"></script><script src="./factions.js"></script><script src="./roguelike.js"></script><script src="./rune-art.js"></script><script src="./rune-effects.js"></script><script src="./unit-renderer.js"></script><script src="./battle-audio.js"></script><script src="./background-music.js"></script><script src="./faction-combat.js"></script><script src="./game.js"></script><script src="./rogue-ui.js"></script><script src="./pwa.js"></script><script src="./main-menu.js"></script>
 </body></html>
 

@@ -10,7 +10,7 @@ try{const saved=localStorage.getItem('rus-sound-volume-v1');if(saved!==null&&sav
 const slider=document.getElementById('soundVolume'),output=document.getElementById('soundVolumeValue');
 function applyVolume(){if(master)master.gain.setValueAtTime(muted?0:volume,context.currentTime);slider.value=String(Math.round(volume*100));output.textContent=slider.value+'%';slider.setAttribute('aria-valuetext',slider.value+'%')}
 slider.addEventListener('input',()=>{volume=Math.max(0,Math.min(1,Number(slider.value)/100));muted=volume===0;try{localStorage.setItem('rus-sound-volume-v1',String(volume));localStorage.setItem('rus-sound-muted-v1',muted?'1':'0')}catch{}applyVolume();label();if(muted)stopAll();else void unlock()});
-const button=document.getElementById('soundToggle'),rand=(lo,hi)=>lo+Math.random()*(hi-lo),mounted=u=>['rider','p_horse','c_horsebow','c_lancer'].includes(u.id),human=u=>!['l_','z_','d_'].some(prefix=>u.id.startsWith(prefix));
+const button=document.getElementById('soundToggle'),rand=(lo,hi)=>lo+Math.random()*(hi-lo),mounted=u=>u.mounted||['rider','p_horse','c_horsebow','c_lancer'].includes(u.id),human=u=>!u.machine&&u.id!=='e_mummy'&&!['l_','z_','d_'].some(prefix=>u.id.startsWith(prefix));
 function label(){button.textContent=muted?'🔇 Звуки: выкл.':'🔊 Звуки: вкл.';button.setAttribute('aria-pressed',String(!muted))}
 function stopAll(){for(const source of playing){try{source.stop()}catch{}}playing.clear()}
 function load(url){
@@ -44,7 +44,17 @@ function play(kind,volume,x=.5){
  try{source.start();bags[kind].pop();last[kind]=url;return true}catch{playing.delete(source);source.disconnect();gain.disconnect();pan?.disconnect();return false}
 }
 function resetDelays(){const now=context?.currentTime||0;nextSword=now+.2;nextCry=now+2.5;nextHorse=now+rand(3,5);nextVocal=now+2.5}
+let nextEffect=0;
+function effect(kind){
+ if(!round||muted||!context||context.state!=='running'||document.hidden||playing.size>=3||!context.createOscillator)return false;
+ const now=context.currentTime;if(now<nextEffect)return false;nextEffect=now+(['blast','roar','warning'].includes(kind)?.7:.24);
+ const specs={gun:[180,45,.09,'square'],flame:[100,40,.22,'sawtooth'],blast:[90,25,.4,'sawtooth'],laser:[950,140,.16,'sawtooth'],magic:[420,950,.25,'sine'],swish:[650,180,.1,'triangle'],metal:[270,80,.12,'triangle'],roar:[85,35,.6,'sawtooth'],warning:[430,590,.18,'sine'],horse:[150,70,.12,'triangle']};
+ const [start,end,duration,type]=specs[kind]||specs.metal,osc=context.createOscillator(),gain=context.createGain();osc.kind='synthetic';osc.type=type;
+ osc.frequency.setValueAtTime(start,now);osc.frequency.exponentialRampToValueAtTime(end,now+duration);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.06,now+.01);gain.gain.exponentialRampToValueAtTime(.0001,now+duration);
+ osc.connect(gain);gain.connect(master);playing.add(osc);osc.onended=()=>{playing.delete(osc);osc.disconnect();gain.disconnect()};osc.start(now);osc.stop(now+duration);return true;
+}
 window.RUS_AUDIO={
+ effect,
  unlock,
  begin(){stopAll();round=true;cries=0;horses=0;resetDelays();void unlock()},
  end(){round=false;stopAll()},
@@ -67,3 +77,4 @@ for(const type of ['pointerdown','touchend','keydown'])document.addEventListener
 document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAll();else resetDelays()});
 window.addEventListener('pagehide',()=>{round=false;stopAll()});applyVolume();label();
 })();
+

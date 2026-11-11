@@ -22,8 +22,17 @@ const rows=[
  ['madness','rod','Тёмный янтарь','rootsHeart'],['wisdom','vedat','Фиолетовый агат','eye'],
  ['hyperborea','vedat','Северный хрусталь','world'],['greatness','rod','Золото предков','greatTree']
 ];
+rows.push(
+ ['pikes','rod','Остриё из ясеня','arrow'],['cavalry','ra','Кованая подкова','steps'],
+ ['hunters','vedat','Соколиная кость','eye'],['ember','ra','Уголь из горна','axe'],
+ ['ward','rod','Соляной камень','shield'],['pack','veles','Медвежий камень','paw'],
+ ['discipline','rod','Дубовый обруч','shield'],['peasants','veles','Берестяная община','grain'],
+ ['duelist','ra','Сталь богатыря','axe'],['stormiron','perun','Грозовое железо','bolt'],
+ ['silence','vedat','Печать тишины','splitEye'],['dread','veles','Тёмный клык','paw'],
+ ['scouts','ra','Степной янтарь','arrow'],['thorns','rod','Колючий дуб','tree'],
+ ['focus','perun','Спокойное серебро','staff']);
 const specs=new Map(rows.map(([id,school,material,motif],i)=>[id,{id,school:schools[school],material,motif,index:i}]));
-let c;const cache=new Map(),MAX_CACHE=66;
+let c;const cache=new Map(),MAX_CACHE=111;
 function line(points,col,w=2){c.beginPath();c.moveTo(...points[0]);for(let i=1;i<points.length;i++)c.lineTo(...points[i]);c.strokeStyle=col;c.lineWidth=w;c.lineCap='round';c.lineJoin='round';c.stroke()}
 function poly(points,fill,stroke,w=1){c.beginPath();c.moveTo(...points[0]);for(let i=1;i<points.length;i++)c.lineTo(...points[i]);c.closePath();if(fill){c.fillStyle=fill;c.fill()}if(stroke){c.strokeStyle=stroke;c.lineWidth=w;c.stroke()}}
 function circle(x,y,r,col,w=2,fill=null){c.beginPath();c.arc(x,y,r,0,Math.PI*2);if(fill){c.fillStyle=fill;c.fill()}c.strokeStyle=col;c.lineWidth=w;c.stroke()}

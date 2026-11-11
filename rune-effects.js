@@ -6,14 +6,15 @@ const R=window.RUS_RUN;
 const bear={id:'bear',name:'Медведь Велеса',hp:145,damage:19,cooldown:1.25,range:1,speed:1.6,armor:.08,role:'melee',shape:'bear',cost:0,big:true};
 function create(api,active,boss){
  const equipped=new Set(active),has=id=>equipped.has(id),living=team=>api.units().filter(u=>u.hpNow>0&&u.team===team);
- let attacks=0,reborn=false,lastStand=false,nextCall=30,nextStorm=15,nextBoss=({khan:12,batyr:8,lizard:10,koschei:14,emperor:10})[boss?.key]||10,closed=false;
+ let attacks=0,reborn=false,lastStand=false,nextCall=30,nextStorm=15,nextBoss=({khan:12,batyr:8,lizard:10,koschei:14,emperor:10})[boss?.key]||10,closed=false,supportLeft=6,raisedLeft=4;
  const flash=id=>window.RUS_RUNE_ART?.activate(id);
  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  const nearest=(units,t,count,radius=Infinity)=>units.filter(v=>v!==t&&dist(v,t)<=radius).sort((a,b)=>dist(a,t)-dist(b,t)).slice(0,count);
  function proc(source,target,amount,chain=has('wrath')){if(!target||closed)return;if(target.hpNow<=0)target=nearest(living(source.team==='rus'?'enemy':'rus'),target,1)[0];if(!target)return;if(chain&&has('wrath'))flash('wrath');api.bolt(source,target,amount,chain?2:0,false)}
  function start(formation){
+ if(R.get()?.charms?.length)for(const u of living('rus')){u.wardUntil=R.get().charms.length>1?18:12;u.charmWard=true}
   for(const id of active)flash(id);
-  if(!has('veles'))return;
+  if(!has('veles')||R.rules().noBear)return;
   for(let i=4;i<formation.length;i+=5){if(living('rus').filter(u=>u.id==='bear').length>=3)break;api.spawn(bear,'rus',formation[i],{temporary:true,expiresAt:20,summoned:true})}
  }
  function attack(source,target){
@@ -38,7 +39,7 @@ function create(api,active,boss){
   if((unit.hasteUntil||0)>api.time())bonus+=unit.hasteAmount||.25;
   return (1+(unit.runeAttackBonus||0)+bonus)/(1+(unit.runeAttackBonus||0));
  }
- function outgoing(unit){return unit&&(unit.mightUntil||0)>api.time()?1.2:1}
+ function outgoing(unit){return (unit&&(unit.mightUntil||0)>api.time()?1.2:1)*(unit&&(unit.cursedUntil||0)>api.time()?.8:1)}
  function incoming(unit){return (unit.wardUntil||0)>api.time()?.8:1}
  function spawnEnemy(id,at){
   if(living('enemy').length>=36)return;
@@ -50,16 +51,16 @@ function create(api,active,boss){
   const leader=api.units().find(u=>u.bossKey===boss?.key&&u.hpNow>0);
   if(!leader||time<nextBoss)return;
   leader.abilityFlash=.8;
-  if(boss.key==='khan'){nextBoss=time+12;for(let i=0;i<2;i++)spawnEnemy('p_foot',leader)}
+  if(boss.key==='khan'){nextBoss=time+12;for(let i=0;i<2&&supportLeft>0;i++,supportLeft--)spawnEnemy('p_foot',leader)}
   else if(boss.key==='batyr'){nextBoss=time+8;for(const u of nearest(living('enemy'),leader,36,3.5).concat(leader)){u.hasteUntil=time+5;u.hasteAmount=.25;u.mightUntil=time+5}}
   else if(boss.key==='lizard'){nextBoss=time+10;for(const u of living('enemy').filter(u=>u!==leader&&u.id.startsWith('l_'))){u.wardUntil=time+5;u.mightUntil=time+5}}
   else if(boss.key==='koschei'){
    nextBoss=time+14;let raised=0;
-   for(const u of api.units())if(raised<2&&u.team==='enemy'&&u.hpNow<=0&&!u.bossKey&&!u.raised&&!u.expired&&u.id.startsWith('z_')&&living('enemy').length<36){u.raised=true;u.hpNow=Math.max(1,Math.round(u.hp*.45));u.deadAt=null;u.deadVisualAt=null;u.deathHandled=false;u.electric=.4;u.target=null;u.wait=.6;raised++}
+   for(const u of api.units())if(raised<2&&raisedLeft>0&&u.team==='enemy'&&u.hpNow<=0&&!u.bossKey&&!u.raised&&!u.expired&&u.id.startsWith('z_')&&living('enemy').length<36){u.raised=true;u.hpNow=Math.max(1,Math.round(u.hp*.45));u.deadAt=null;u.deadVisualAt=null;u.deathHandled=false;u.electric=.4;u.target=null;u.wait=.6;raised++;raisedLeft--}
   }else if(boss.key==='emperor'){nextBoss=time+10;for(const u of living('enemy')){u.hasteUntil=time+5;u.hasteAmount=.35}}
   else nextBoss=time+10;
  }
- function splash(source,target){if(source.bossKey!=='ancient'||closed)return;for(const other of nearest(living('rus'),target,3,1.45))api.damage(other,source.damage*.4,false,source,true)}
+ function splash(){}
  function tick(time){
   if(closed)return;
   for(const u of api.units())if(u.hpNow>0&&u.temporary&&time>=u.expiresAt){u.expired=true;u.hpNow=0;u.deadAt=time;u.deadVisualAt=api.fxTime();u.motion=0}

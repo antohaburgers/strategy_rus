@@ -2,7 +2,7 @@
 (() => {
 'use strict';
 const D=window.RUS_DATA, R=window.RUS_RUN, W=D.W, H=D.H;
-let effects=null;
+let effects=null,special=null;
 let TW=72,TH=40,SKEW=18,artScale=1;
 const $=id=>document.getElementById(id);
 const c=$('battle'), g=c.getContext('2d'), field=$('field');
@@ -13,7 +13,7 @@ const biomes={
  steppe:['#8ba56b','#78945a','#9eb27b'],river:['#87a66b','#7c9e69','#a1b57c'],
  forest:['#61875c','#739568','#83a471'],marsh:['#66866e','#73917a','#567a67'],
  canyon:['#ad956d','#bd9e70','#9e8361'],grave:['#6d806d','#7b8973','#576f63'],
- jungle:['#638f65','#77a072','#537d5b'],road:['#90a16e','#a4ae7c','#85966a']
+ jungle:['#638f65','#77a072','#537d5b'],road:['#90a16e','#a4ae7c','#85966a'],iron:['#788176','#6e766c','#92917f'],sakura:['#85957a','#9f9a85','#bc9e9d'],meadow:['#92aa70','#7c985c','#b1b983'],desert:['#c9ac72','#d5b77e','#bda16b'],factory:['#65777b','#5c6d71','#7b8c8b']
 };
 let state={index:0,mode:'prep',selected:'militia',placed:[],units:[],shots:[],particles:[],pools:[],fxTime:0,obstacles:new Map(),
   budget:90,time:0,level:null,zoom:1,panX:0,panY:0,last:0,accum:0,hint:'',hover:null};
@@ -52,15 +52,17 @@ function updateControls(){
  $('battleTime').textContent=state.mode==='prep'?'Подготовка':state.mode==='battle'?'Бой '+Math.floor(state.time)+' с':state.mode==='win'?'Победа':'Поражение';
  $('mapTitle').textContent=state.level.title;
  $('battleNumber').textContent=String(state.level.id).padStart(2,'0');
- $('cycleNumber').textContent='Цикл '+(state.level.cycle||1)+' · '+(state.level.boss?'БОСС':'обычный бой');
- $('fight').disabled=state.mode!=='prep'||state.placed.length===0;
+ $('cycleNumber').textContent='Глава '+(state.level.cycle||1)+' / 3 · '+(state.level.boss?'БОСС':state.level.kind==='trial'?'ИСПЫТАНИЕ':state.level.kind==='elite'?'Усиленный бой':'Обычный бой');
+ $('fight').disabled=state.mode!=='prep'||!!R.validate(state.placed);
+ const rule=R.rules(),cond=$('battleCondition');if(cond){cond.textContent=rule.name+' · '+rule.text+(rule.weakened?' Подавлена: '+R.runeMap.get(rule.weakened).name:'')+(R.get()?.charms?.length?' · Оберег: −20% урона на '+(R.get().charms.length>1?18:12)+' с':'');cond.hidden=state.mode==='idle'}
+ const guard=$('guard');if(guard)guard.hidden=state.mode!=='battle';
  $('fight').classList.toggle('hidden',state.mode!=='prep');
  $('clear').classList.toggle('hidden',state.mode!=='prep');
  
  $('shop').querySelectorAll('[data-id]').forEach(el=>{
   const u=unitDefs.get(el.dataset.id),modified=R.modify(u);
   el.title=u.name+' — '+modified.hp+' HP · урон '+modified.damage+(u.magic?' · +75% урона ящерам':'');
-  el.disabled=state.mode!=='prep'||remaining()<R.cost(u,state.placed.length);
+  el.disabled=state.mode!=='prep'||!R.available(u,state.placed)||remaining()<R.cost(u,state.placed.length);
   el.querySelector('.unitCost').textContent='⚜ '+R.cost(u,state.placed.length);
   el.classList.toggle('selected',state.selected===u.id);
  });
@@ -82,7 +84,7 @@ function setupShop(){
  }
 }
 function prepareEncounter(level){
- window.RUS_AUDIO?.end();effects?.end();effects=null;
+ window.RUS_AUDIO?.end();effects?.end();special?.end();effects=null;special=null;
  state.index=level.id-1;state.level=level;state.budget=level.budget;
  state.obstacles=new Map(level.obstacles.map(o=>[key(o.x,o.y),o.type]));
  state.placed=[];state.units=[];state.shots=[];state.particles=[];state.pools=[];state.lightning=[];state.fxTime=0;state.time=0;state.accum=0;state.mode='prep';
@@ -100,15 +102,16 @@ function placeAt(x,y){
  if(x>=D.DEPLOY){notify('Тут нельзя разместить русов: нужна бело-красная область слева.');return}
  if(solid(x,y)){notify('Здесь препятствие — клетка занята.');return}
  const def=unitDefs.get(state.selected);
+ if(!R.available(def,state.placed)){notify('Ограничение: '+R.rules().text);return}
  if(remaining()<R.cost(def,state.placed.length)){notify('Не хватает очков на '+def.name+'.');return}
  state.placed.push({id:def.id,x:x+.5,y:y+.5});R.saveFormation(state.placed);notify(def.name+' размещён. Можно добавить ещё или нажать «В БОЙ!».');updateControls();
 }
 function enemyDefinition(entry){
  const p=typeof entry==='string'?{id:entry}:entry,d={...unitDefs.get(p.id),...p.stats},scale=Math.max(1,state.level.enemyScale||1);
- return {...d,hp:Math.max(1,Math.round(d.hp*scale)),damage:Math.max(1,Math.round(d.damage*scale)),bossKey:p.bossKey,bossName:p.bossName,armyScale:scale,bossScale:p.bossKey?1.28:1};
+ return {...d,hp:Math.max(1,Math.round(d.hp*scale)),damage:Math.max(1,Math.round(d.damage*scale*(R.rules().id==='elite'&&(d.mounted||d.shape?.includes('horse'))?1.2:1))),bossKey:p.bossKey,bossName:p.bossName,armyScale:scale,armor:Math.min(.65,(d.armor||0)+(R.rules().id==='armor'?.12:0)),bossScale:p.bossKey?(p.id.startsWith('boss_')?1:1.65):1};
 }
 function spawn(def,team,origin,extra={}){
- if(state.units.filter(u=>u.hpNow>0&&u.team===team).length>=(team==='rus'?52:36))return null;
+ if(state.units.filter(u=>u.hpNow>0&&u.team===team).length>=(team==='rus'?(R.rules().maxUnits||52):36))return null;
  const cells=[];for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(!solid(x,y)&&!state.units.some(u=>u.hpNow>0&&Math.hypot(u.x-x-.5,u.y-y-.5)<.48))cells.push({x:x+.5,y:y+.5});
  cells.sort((a,b)=>distance(a,origin)-distance(b,origin));const pos=cells[0];if(!pos)return null;
  const unit=makeSoldier(def,team,pos.x,pos.y);Object.assign(unit,extra);
@@ -117,17 +120,18 @@ function spawn(def,team,origin,extra={}){
 }
 function startBattle(){
  if(state.mode!=='prep'||R.get()?.phase!=='prep')return;
- if(state.placed.length===0){notify('Сначала поставь хотя бы одного воина.');return}
+ const invalid=R.validate(state.placed);if(invalid){notify(invalid);return}
  if(!R.begin(state.placed))return;
  state.units=[...state.placed.map(p=>makeSoldier(unitDefs.get(p.id),'rus',p.x,p.y)),...state.level.enemies.map(p=>makeSoldier(enemyDefinition(p),'enemy',p.x+.5,p.y+.5))];
  state.time=0;state.lightning=[];state.shots=[];state.particles=[];state.pools=[];state.fxTime=0;state.accum=0;state.mode='battle';
- effects=window.RUS_RUNE_EFFECTS.create({units:()=>state.units,time:()=>state.time,fxTime:()=>state.fxTime,spawn,damage:applyDamage,bolt:addBolt,random:Math.random},R.get().runes,state.level.boss);
+ effects=window.RUS_RUNE_EFFECTS.create({units:()=>state.units,time:()=>state.time,fxTime:()=>state.fxTime,spawn,damage:applyDamage,bolt:addBolt,random:Math.random},R.activeRunes(),state.level.boss);
+ special=window.RUS_FACTION_COMBAT.create({units:()=>state.units,time:()=>state.time,spawn,damage:applyDamage});special.initialize();
  effects.start(state.placed);window.RUS_AUDIO?.begin();notify(state.level.boss?state.level.boss.name+': '+state.level.boss.ability:'Бой идёт автоматически. Благословения действуют на всю дружину.');updateControls();
 }
 function clearArmy(){if(state.mode!=='prep')return;state.placed=[];R.saveFormation([]);notify('Армия распущена. Бюджет восстановлен.');updateControls()}
 function showResult(win){
  if(state.mode!=='battle')return;
- window.RUS_AUDIO?.end();effects?.end();state.mode=win?'win':'lose';
+ window.RUS_AUDIO?.end();effects?.end();special?.end();state.mode=win?'win':'lose';
  if(win)R.victory(state.level.key);else R.defeat(state.level.key);
  updateControls();
 }
@@ -164,7 +168,7 @@ function acquire(u){
  for(const v of state.units){
   if(v.team===u.team||v.hpNow<=0)continue;
   const d=distance(u,v);
-  const s=d+(u.role==='ranged'&&v.role==='ranged'?-0.12:0);
+  const s=d+(u.flanker&&v.role==='ranged'?-3.5:u.role==='ranged'&&v.role==='ranged'?-.12:0);
   if(s<score){score=s;candidate=v}
  }
  return candidate;
@@ -184,7 +188,7 @@ function move(u,goal,dt){
  const norm=Math.hypot(dx,dy)||1;dx/=norm;dy/=norm;
  const terrain=at(Math.floor(u.x),Math.floor(u.y));
  const modifier=terrain==='mud'?.55:terrain==='scrub'?.8:1;
- const step=Math.min(dist,u.speed*modifier*dt);
+ const step=Math.min(dist,u.speed*modifier*dt*((u.vulnerableUntil||0)>state.time&&u.bossKey==='hussar'&&(u.chargeUntil||0)<=state.time?.45:1));
  const nx=clamp(u.x+dx*step,.08,W-.08),ny=clamp(u.y+dy*step,.08,H-.08);
  if(!solid(Math.floor(nx),Math.floor(ny))){u.x=nx;u.y=ny;u.walk+=step;u.motion=.12;return}
  if(!solid(Math.floor(nx),Math.floor(u.y))){u.x=nx;u.walk+=step;u.motion=.12;return}
@@ -204,10 +208,14 @@ function chase(u,t,dt){
 }
 function applyDamage(t,damage,magic=false,source=null,secondary=false){
  if(t.hpNow<=0)return;
- damage=Math.max(1,Math.round(damage*(magic?1:1-t.armor)*(effects?.outgoing(source)||1)*(effects?.incoming(t)||1)));
- t.hpNow=Math.max(0,t.hpNow-damage);t.hurt=.18;if(magic)t.electric=.25;
+ damage=special?.beforeDamage(t,damage,magic,source)??damage;if(damage<=0)return;
+ let armor=t.armor||0;
+ if(source?.team==='rus'&&['spear','bogatyr'].includes(source.id))armor=Math.max(0,armor-.3-(R.activeRunes().includes('ember')?.2:0));
+ damage=Math.max(1,Math.round(damage*(magic?1:1-armor)*(effects?.outgoing(source)||1)*(effects?.incoming(t)||1)));
+ t.hpNow=Math.max(0,t.hpNow-damage);
+ if(!secondary&&t.team==='rus'&&t.id==='shield'&&source&&source.hpNow>0&&source.role!=='ranged'&&R.activeRunes().includes('thorns'))applyDamage(source,damage*.15,false,t,true);t.hurt=.18;if(magic)t.electric=.25;
  if(t.hpNow===0&&!t.deathHandled){
-  t.deathHandled=true;effects?.death(t);
+  t.deathHandled=true;if(!special?.death(t,magic,source))effects?.death(t);
   if(t.hpNow<=0){t.deadAt=state.time;t.deadVisualAt=state.fxTime;t.motion=0;t.flash=0;state.pools.push({x:t.x,y:t.y,born:state.fxTime,size:t.big?1.65:t.id==='rider'||t.shape.includes('horse')?1.35:1,seed:t.idNum});if(state.pools.length>70)state.pools.shift()}
  }
 }
@@ -233,13 +241,14 @@ function updateLightning(dt){
  state.lightning=state.lightning.filter(b=>b.age<.55);
 }
 function attack(u,t){
+ if(special?.attack(u,t))return;
  if(u.magic){castLightning(u,t);return}
  let damage=u.damage;
- if(u.id==='spear'&&(t.big||['horse','horsebow'].includes(t.shape)))damage*=u.bonusBig||1;
+ if(u.id==='spear'&&(t.big||t.mounted||['horse','horsebow'].includes(t.shape)))damage*=u.bonusBig||1;
  if(u.charge&&u.attackCount===0)damage*=u.charge;
  applyDamage(t,damage,false,u);u.attackCount++;u.wait=u.cooldown;u.flash=.23;
  if(u.role==='ranged')state.shots.push({x:u.x,y:u.y,tx:t.x,ty:t.y,time:0,duration:.28,enemy:u.team==='enemy',kind:u.id==='l_spitter'?'poison':u.id==='p_spear'?'javelin':'arrow'});
- hitEffect(t);window.RUS_AUDIO?.hit(u,t);effects?.attack(u,t);effects?.splash(u,t);
+ hitEffect(t);window.RUS_AUDIO?.hit(u,t);effects?.attack(u,t);effects?.splash(u,t);special?.afterAttack(u,t);if(u.sound)window.RUS_AUDIO?.effect?.(u.sound);
 }
 // Cosmetic effects have a separate clock so the final fall also completes after victory.
 function hitEffect(u){
@@ -272,22 +281,27 @@ function particlesDraw(){
 function tick(dt){
  if(state.mode!=='battle'||state.paused)return;
  state.time+=dt;
- effects?.tick(state.time);updateLightning(dt);
+ effects?.tick(state.time);special?.tick(state.time);updateLightning(dt);
+ const gb=$('guard');if(gb){const status=special?.status();gb.disabled=!!status&&state.time<status.guardReady;gb.textContent=status&&state.time<status.guardUntil?'РОД ПРИКРЫВАЕТ!':status&&state.time<status.guardReady?'ЗАЩИТА · '+Math.ceil(status.guardReady-state.time)+' с':'ЗАЩИТА РОДА'}
  if(Math.floor(state.time*4)!==Math.floor((state.time-dt)*4))window.RUS_UI?.updateBoss(state.units);
  if(Math.floor(state.time)!==Math.floor(state.time-dt))$('battleTime').textContent='Бой '+Math.floor(state.time)+' с';
  for(const u of state.units){
   u.electric=Math.max(0,(u.electric||0)-dt);u.casting=Math.max(0,(u.casting||0)-dt);
   u.motion=Math.max(0,(u.motion||0)-dt);u.hurt=Math.max(0,(u.hurt||0)-dt);
   if(u.hpNow<=0)continue;
+  if((u.stunnedUntil||0)>state.time)continue;
+  if((u.fearedUntil||0)>state.time){move(u,{x:Math.min(11.7,u.x+2),y:u.y},dt);continue}
+  if((u.chargeUntil||0)>state.time&&u.chargeGoal){const speed=u.speed;u.speed=5;chase(u,u.chargeGoal,dt);u.speed=speed;continue}
+  if((u.specialCastUntil||0)>state.time)continue;
   u.abilityFlash=Math.max(0,(u.abilityFlash||0)-dt);
   u.wait=Math.max(0,u.wait-dt*(effects?.rate(u)||1));u.flash=Math.max(0,u.flash-dt);
   u.acquire-=dt;
-  if(!u.target||u.target.hpNow<=0||u.acquire<=0){u.target=acquire(u);u.acquire=.35+(u.idNum%4)*.07}
+  if(!u.target||u.target.hpNow<=0||u.acquire<=0){const old=u.target;u.target=acquire(u);if(u.turnDelay&&old!==u.target)u.wait=Math.max(u.wait,u.turnDelay);u.acquire=.35+(u.idNum%4)*.07}
   if(u.casting>0)continue;
   const t=u.target;if(!t)continue;
   const facing=iso(t.x,t.y).x-iso(u.x,u.y).x;if(Math.abs(facing)>2)u.facing=facing>0?1:-1;
   const d=distance(u,t),seen=traceClear(u.x,u.y,t.x,t.y,sightKinds);
-  const inRange=d<=u.range+.12&&(u.role!=='ranged'||seen);
+  const inRange=d<=u.range+.12&&(u.role!=='ranged'||u.lob||seen);
   if(inRange){
    if(u.wait===0)attack(u,t);
    // Лучники пытаются отступить, если их прижали к ближнему бою.
@@ -299,9 +313,10 @@ function tick(dt){
  window.RUS_AUDIO?.update(state.units);
  state.shots=state.shots.filter(p=>(p.time+=dt)<p.duration);
  const rus=state.units.filter(u=>u.team==='rus'&&u.hpNow>0),foes=state.units.filter(u=>u.team==='enemy'&&u.hpNow>0);
+ if(state.units.some(u=>u.bossKey==='mech'&&u.hpNow<=0)){showResult(!!rus.length);return}
  if(!rus.length||!foes.length){showResult(!!rus.length);return}
  if(state.units.length>140){const live=state.units.filter(u=>u.hpNow>0),dead=state.units.filter(u=>u.hpNow<=0);state.units=live.concat(dead.slice(-Math.max(1,Math.min(60,140-live.length))))}
- if(state.time>=75){
+ if(state.time>=100){
   if(state.level.boss&&foes.some(u=>u.bossKey)){showResult(false);return}
   const health=team=>state.units.filter(u=>u.team===team).reduce((sum,u)=>sum+u.hpNow/u.hp,0);
   showResult(health('rus')>=health('enemy'));
@@ -347,7 +362,14 @@ function tile(x,y){
 function objectDraw(o){
  const p=iso(o.x+.5,o.y+.5);
  g.save();g.translate(p.x,p.y);g.scale(artScale,artScale);
- if(o.type==='tree'){
+ const biome=state.level.biome;
+ if(['desert','factory','iron'].includes(biome)&&o.type==='rock'){
+  if(biome==='desert'){oval(0,3,20,6,'#67513955');poly([[-11,0],[-10,-36],[10,-36],[12,0]],'#c8ac72','#897549',1.5);poly([[-15,-36],[-15,-43],[15,-43],[15,-36]],'#e0c68f','#897549',1.3);segment(-6,-32,-6,-4,'#edd69b',2);segment(4,-33,4,-5,'#a88c5b',1.5)}
+  else if(biome==='iron'){poly([[-24,1],[-22,-25],[16,-29],[26,-14],[24,2]],'#7e8371','#414e48',1.5);poly([[-22,-25],[16,-29],[26,-14],[-13,-10]],'#9ca08a');segment(-8,-12,12,-13,'#273c35',5);segment(-23,-2,22,-2,'#b4b69a',2)}
+  else{poly([[-19,0],[-19,-30],[15,-30],[22,-20],[22,1]],'#71858a','#384f56',1.5);segment(-12,-24,10,-24,'#b4d8d0',2);for(let i=0;i<3;i++)segment(-10,-16+i*5,8,-16+i*5,'#384d57',2);oval(16,-8,3,3,'#d9b66c')}
+ }else if(o.type==='tree'&&biome==='sakura'){
+  oval(0,3,19,5,'#4c425c44');segment(0,0,0,-39,'#705453',6);segment(0,-23,-12,-40,'#705453',4);segment(0,-26,15,-42,'#705453',4);for(const [x,y] of [[-17,-40],[0,-49],[17,-42],[-5,-35]]){oval(x,y,15,12,'#d6a4b3','#9f7c8e');oval(x-4,y-3,8,5,'#e6bbc7')}
+ }else if(o.type==='tree'){
   oval(4,5,19,7,'#15301c50');
   segment(0,1,0,-36,'#6c5037',7);
   for(let i=0;i<3;i++){const y=-22-i*12,r=22-i*5;poly([[0,y-29],[-r,y+11],[r,y+11]],i%2?'#326648':'#447751','#244e35',1.4)}
@@ -380,7 +402,7 @@ function flagDraw(enemy){
  const p=iso(enemy?W-.8:.8,-.15),t=state.last/1000,wave=Math.sin(t*3+(enemy?2:0))*3;
  g.save();g.translate(p.x,p.y);g.scale(Math.max(.65,artScale),Math.max(.65,artScale));
  oval(0,1,18,4,'#203b3540');segment(0,0,0,-90,'#614c36',4);segment(-1,-89,-1,0,'#e0c191',1);poly([[0,-99],[-4,-89],[4,-89]],'#ead49a');
- const colors=enemy?['#9f5a36','#2f6876','#365d44','#43494e','#836044','#a33336'][state.level.chapter-1]:'#f5edd9';
+ const colors=enemy?(D.factions.find(f=>f.name===state.level.faction)?.assets.color||'#8e584a'):'#f5edd9';
  poly([[2,-86],[38,-84+wave],[42,-57+wave],[20,-60],[2,-58]],colors,'#382f2d',1.2);
  if(!enemy){segment(5,-82,35,-80+wave,'#b33640',3);segment(5,-62,36,-61+wave,'#b33640',3);window.RUS_ART.rune(g,20,-72,.85,'#b33640')}
  else {g.strokeStyle='#e6d3a0';g.lineWidth=2;g.beginPath();
@@ -406,6 +428,20 @@ function sceneryDraw(){
   const x=i*screenW/26,y=horizon+screenH*.1+hash(i,0,50)*screenH*.04,ht=screenH*(.05+hash(i,1,60)*.045);
   segment(x,y,x,y-ht*.5,'#5d7560',2);poly([[x,y-ht],[x-ht*.34,y-ht*.15],[x+ht*.34,y-ht*.15]],i%2?'#56775e':'#638168');
  }
+ const biome=state.level.biome;
+ if(['iron','sakura','meadow','desert','factory'].includes(biome)){
+  g.fillStyle=biome==='desert'?'#d0b67e':biome==='factory'?'#83969a':biome==='sakura'?'#d2bec3':'#b8bda4';g.fillRect(0,0,screenW,horizon+screenH*.12);
+  for(let i=0;i<5;i++){
+   const x=screenW*(.08+i*.21),y=horizon+screenH*.11,s=Math.min(screenH/300,1.3);
+   g.save();g.translate(x,y);g.scale(s,s);
+   if(biome==='desert'){poly([[-70,0],[0,-86-i%2*25],[71,0]],'#bba16f');poly([[0,-86-i%2*25],[71,0],[18,0]],'#a48b63');segment(0,-80,17,-2,'#ddc48a',1);for(let j=0;j<4;j++)segment(-38+j*9,-28-j*9,40-j*7,-28-j*9,'#a88e63',1)}
+   else if(biome==='sakura'){for(let j=0;j<3;j++){const yy=-j*24;poly([[-22,yy],[22,yy],[20,yy-22],[-20,yy-22]],'#a26a70');poly([[-38,yy-22],[0,yy-34],[38,yy-22],[25,yy-16],[-27,yy-16]],'#656c76');segment(-25,yy-21,25,yy-21,'#d5bfc0',1)}segment(0,-80,0,-97,'#74717c',2)}
+   else if(biome==='factory'){poly([[-39,0],[-39,-45],[-20,-56],[30,-44],[41,0]],'#627981');for(let j=0;j<3;j++)poly([[-28+j*21,-37],[-16+j*21,-37],[-16+j*21,-22],[-28+j*21,-22]],'#d1b979');poly([[15,-45],[15,-100],[24,-100],[27,-42]],'#566c75');oval(25,-110,19,6,'#abb9b6')}
+   else if(biome==='iron'){poly([[-42,0],[-36,-26],[31,-29],[43,0]],'#7f8d7c');segment(-17,-16,20,-17,'#435a4d',4);for(let j=0;j<4;j++){segment(-40+j*22,0,-28+j*22,-17,'#586b59',2);segment(-42+j*22,-17,-27+j*22,0,'#586b59',2)}}
+   else{poly([[-21,0],[0,-32],[25,0]],i%2?'#b8646c':'#d3bb92');segment(0,-31,0,-44,'#7b765c',2);poly([[1,-43],[18,-41],[2,-34]],'#a83e58')}
+   g.restore();
+  }
+ }
  const haze=g.createLinearGradient(0,horizon,0,screenH*.47);haze.addColorStop(0,'#d6dab33b');haze.addColorStop(1,'#d6dab300');g.fillStyle=haze;g.fillRect(0,horizon,screenW,screenH*.22);
  // Foreground grasses soften the outline without hiding the deployment grid.
  for(let i=0;i<30;i++){
@@ -428,6 +464,17 @@ function lightningDraw(){
   });g.restore();
  }
 }
+function dangerDraw(){
+ const colors={shell:'#e78844',rocket:'#ed744f',beam:'#c283f6',laser:'#5bd9ed',charge:'#e9c46c',sand:'#f2d179',roar:'#d9b6e9'};
+ for(const h of special?.hazards||[]){
+  const p=iso(h.x,h.y),a=iso(h.sx,h.sy),color=colors[h.kind]||'#ef896e';
+  g.save();g.globalAlpha=h.hit?.7:.35+Math.sin(state.fxTime*9)*.12;g.fillStyle=color;g.strokeStyle=color;g.lineWidth=2;
+  if(h.line){const dx=h.x-h.sx,dy=h.y-h.sy,len=Math.hypot(dx,dy)||1,nx=-dy/len*h.radius,ny=dx/len*h.radius;const pts=[[h.sx+nx,h.sy+ny],[h.x+nx,h.y+ny],[h.x-nx,h.y-ny],[h.sx-nx,h.sy-ny]].map(([x,y])=>{const p=iso(x,y);return [p.x,p.y]});poly(pts,color,color,2)}
+  else{g.beginPath();g.ellipse(p.x,p.y,h.radius*TW,h.radius*TH,0,0,Math.PI*2);g.fill();g.stroke()}
+  g.globalAlpha=1;g.fillStyle='#1b2029';g.fillRect(p.x-42,p.y-22,84,18);g.fillStyle='#fff1d1';g.font='bold 11px sans-serif';g.textAlign='center';g.fillText(h.hit?'УДАР!':({shell:'СНАРЯД',beam:'ЛУЧ',charge:'НАТИСК',roar:'РЁВ',sand:'ПЕСОК',rocket:'РАКЕТЫ',laser:'ЛАЗЕР',fist:'КУЛАК',katana:'КАТАНА',tail:'РАЗМАХ'})[h.kind]+' '+Math.max(0,h.at-state.time).toFixed(1),p.x,p.y-9);g.restore();
+ }
+ if(special?.status().guardUntil>state.time){g.save();g.strokeStyle='#e8d68f';g.lineWidth=2;g.globalAlpha=.65;for(const u of state.units.filter(u=>u.team==='rus'&&u.hpNow>0)){const p=iso(u.x,u.y);g.beginPath();g.ellipse(p.x,p.y-16*artScale,16*artScale,24*artScale,0,0,Math.PI*2);g.stroke()}g.restore()}
+}
 function render(){
  if(!c.width||!c.height||!state.level)return;
  g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,screenW,screenH);
@@ -440,7 +487,7 @@ function render(){
   const ok=state.hover.x<D.DEPLOY&&!solid(state.hover.x,state.hover.y);
   drawDiamond(p,ok?'#bde6a075':'#e879647d',ok?'#e0f2ce':'#f7ae9b');
  }
- poolsDraw();
+ poolsDraw();dangerDraw();
  if(state.mode!=='prep')for(const u of state.units)if(u.hpNow<=0)unitDraw(u);
  const drawables=[{sort:-TH*.15,kind:'flag',value:{enemy:false}},{sort:-TH*.15,kind:'flag',value:{enemy:true}}];
  state.level.obstacles.forEach(o=>{if(o.type!=='water')drawables.push({sort:iso(o.x+.5,o.y+.5).y,kind:'obstacle',value:o})});
@@ -506,6 +553,7 @@ $('fullscreen').addEventListener('click',async()=>{
 });
 $('clear').addEventListener('click',clearArmy);
 $('fight').addEventListener('click',startBattle);
+ $('guard')?.addEventListener('click',()=>{if(state.mode==='battle'&&!state.paused)special?.guard()});
 
 function frame(t){
  if(document.body.classList.contains('at-title')||document.hidden){state.last=t;requestAnimationFrame(frame);return}
@@ -515,7 +563,7 @@ function frame(t){
  visualTick(delta);render();requestAnimationFrame(frame);
 }
 window.RUS_GAME_IS_BUSY=()=>state.mode==='battle'||(state.mode==='prep'&&state.placed.length>0);
-window.RUS_BATTLE={prepare:prepareEncounter,start:startBattle,getLevelKey:()=>state.level?.key,getMode:()=>state.mode,getHUDUnits:()=>state.mode==='prep'?state.level.enemies.map(p=>{const d=enemyDefinition(p);return {...d,hpNow:d.hp}}):state.units,pause:()=>{state.paused=true},resume:()=>{state.paused=false;state.last=0},surrender:()=>showResult(false),stop:()=>{effects?.end();effects=null;window.RUS_AUDIO?.end();state.mode='idle';state.units=[];state.lightning=[];state.paused=false}};
+window.RUS_BATTLE={prepare:prepareEncounter,start:startBattle,getLevelKey:()=>state.level?.key,getMode:()=>state.mode,getHUDUnits:()=>state.mode==='prep'?state.level.enemies.map(p=>{const d=enemyDefinition(p);return {...d,hpNow:d.hp}}):state.units,pause:()=>{state.paused=true},resume:()=>{state.paused=false;state.last=0},surrender:()=>showResult(false),stop:()=>{effects?.end();special?.end();special=null;effects=null;window.RUS_AUDIO?.end();state.mode='idle';state.units=[];state.lightning=[];state.paused=false}};
 setupShop();resize();
 state.level={...D.maps[0],cycle:1};state.budget=90;state.mode='idle';state.lightning=[];state.obstacles=new Map(state.level.obstacles.map(o=>[key(o.x,o.y),o.type]));updateControls();
 if('ResizeObserver' in window)new ResizeObserver(resize).observe(field);
